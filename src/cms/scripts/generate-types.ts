@@ -19,7 +19,7 @@ import {
 export const convertSchema = (name: string, schema: MicroCMSApiSchema) => {
   const { customFields, apiFields } = schema;
   const customs = Object.fromEntries(
-    customFields.map(({ fieldId, createdAt }) => [createdAt, fieldId])
+    customFields.map(({ fieldId, createdAt }) => [createdAt, fieldId]),
   );
 
   const getKindType = (fields: MicroCMSApiFieldType) => {
@@ -31,12 +31,8 @@ export const convertSchema = (name: string, schema: MicroCMSApiSchema) => {
       richEditorV2: () => "string",
       number: () => "number",
       select: () => {
-        const { selectItems: list, multipleSelect } =
-          fields as MicroCMSSelectField;
-        const str = list!.reduce(
-          (a, rep, index) => `${a}${index ? " | " : ""}'${rep.value}'`,
-          ""
-        );
+        const { selectItems: list, multipleSelect } = fields as MicroCMSSelectField;
+        const str = list!.reduce((a, rep, index) => `${a}${index ? " | " : ""}'${rep.value}'`, "");
         if (multipleSelect) return list!.length > 1 ? `(${str})[]` : `${str}[]`;
         return `[${str}]`;
       },
@@ -62,19 +58,14 @@ export const convertSchema = (name: string, schema: MicroCMSApiSchema) => {
       file: () => "{ url: string }",
       custom: () => {
         const { customFieldCreatedAt } = fields as MicroCMSCustomField;
-        return `${name}CustomField${pascalCase(
-          customs[customFieldCreatedAt!]
-        )}`;
+        return `${name}CustomField${pascalCase(customs[customFieldCreatedAt!])}`;
       },
       repeater: () => {
-        const { customFieldCreatedAtList: list } =
-          fields as MicroCMSRepeaterField;
+        const { customFieldCreatedAtList: list } = fields as MicroCMSRepeaterField;
         const str = list!.reduce(
           (a, rep, index) =>
-            `${a}${index ? " | " : ""}${name}CustomField${pascalCase(
-              customs[rep]
-            )}`,
-          ""
+            `${a}${index ? " | " : ""}${name}CustomField${pascalCase(customs[rep])}`,
+          "",
         );
         return list!.length > 1 ? `(${str})[]` : `${str}[]`;
       },
@@ -97,25 +88,19 @@ export const convertSchema = (name: string, schema: MicroCMSApiSchema) => {
   };
 
   const getCustomFields = (fieldId: string, fields: MicroCMSApiFieldType[]) => {
-    return [
-      `${getDoc({ name: "fieldId" })}\nfieldId: '${fieldId}'`,
-      ...getFields(fields),
-    ];
+    return [`${getDoc({ name: "fieldId" })}\nfieldId: '${fieldId}'`, ...getFields(fields)];
   };
 
   const mainSchema = getFields(apiFields);
   const customSchemas = Object.fromEntries(
-    customFields.map(({ fieldId, fields }) => [
-      fieldId,
-      getCustomFields(fieldId, fields),
-    ])
+    customFields.map(({ fieldId, fields }) => [fieldId, getCustomFields(fieldId, fields)]),
   );
   return { mainSchema, customSchemas };
 };
 
 const outSchema = (
   name: string,
-  { mainSchema, customSchemas }: ReturnType<typeof convertSchema>
+  { mainSchema, customSchemas }: ReturnType<typeof convertSchema>,
 ) => {
   let buffer = `export type ${name} = {\n`;
 
@@ -134,10 +119,7 @@ const outSchema = (
   return buffer;
 };
 
-const generateSchemaImportStatements = (
-  isRelation: boolean,
-  isImage: boolean
-): string => {
+const generateSchemaImportStatements = (isRelation: boolean, isImage: boolean): string => {
   if (isRelation && isImage) {
     return `import { MicroCMSRelation, MicroCMSImage } from './microcms-schema';\n\n`;
   }
@@ -151,17 +133,12 @@ const generateSchemaImportStatements = (
   return "";
 };
 
-const generateReferenceImportStatements = (
-  schema: MicroCMSApiSchema,
-  singleName: string
-) => {
+const generateReferenceImportStatements = (schema: MicroCMSApiSchema, singleName: string) => {
   const importString = new Set<string>();
   schema.apiFields.forEach((field) => {
     if (field.kind === "relation" || field.kind === "relationList") {
       const referenceDisplayItem =
-        field.kind === "relation"
-          ? field.referenceDisplayItem
-          : field.referenceDisplayItem;
+        field.kind === "relation" ? field.referenceDisplayItem : field.referenceDisplayItem;
       if (referenceDisplayItem && REFERENCE_MAP[referenceDisplayItem]) {
         const typeName = pascalCase(REFERENCE_MAP[referenceDisplayItem]);
         const pathName = REFERENCE_MAP[referenceDisplayItem].toLowerCase();
@@ -171,7 +148,7 @@ const generateReferenceImportStatements = (
       }
     }
   });
-  // @ts-ignore
+  // @ts-expect-error - microCMSのAPI型定義生成時に必要な型チェックの無視
   return [...importString].join("\n") + "\n\n";
 };
 
@@ -229,10 +206,7 @@ export type MicroCMSRelation<T> = T & MicroCMSListContent;\n`;
       schema;
 
     if (dest) {
-      fs.writeFileSync(
-        path.join(dest, `microcms-schema.ts`),
-        microcmsTypeOutput
-      );
+      fs.writeFileSync(path.join(dest, `microcms-schema.ts`), microcmsTypeOutput);
       fs.writeFileSync(path.join(dest, `${singleName}.ts`), output);
     } else {
       console.log(output);

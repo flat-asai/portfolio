@@ -7,12 +7,25 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "generate:types": "npx tsx ./src/cms/scripts/generate-types.ts ./src/cms/schemas ./src/cms/types/generated"
+    "validate": "lint-staged --no-stash",
+    "generate:types": "npx tsx ./src/cms/scripts/generate-types.ts ./src/cms/schemas ./src/cms/types/generated",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "**/*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "**/*.{js,jsx,json,css,md}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
+    "lint-staged": "^15.5.0",
     "microcms-js-sdk": "^3.2.0",
     "next": "15.2.3",
     "pluralize": "^8.0.0",
+    "prettier": "^3.5.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -24,6 +37,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.2.3",
+    "husky": "^8.0.0",
     "tailwindcss": "^4",
     "tsx": "^4.19.3",
     "typescript": "^5"
