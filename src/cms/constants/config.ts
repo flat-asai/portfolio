@@ -1,0 +1,3 @@
+export const MICROCMS_SERVICE_DOMAIN =
+  process.env.NEXT_PUBLIC_MICROCMS_SERVICE_DOMAIN!;
+export const MICROCMS_API_KEY = process.env.MICROCMS_API_KEY!;
