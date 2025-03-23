@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAccessibility } from "@/components/ui/AccessibilityProvider";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/Badge";
@@ -28,14 +28,15 @@ type WorksProps = {
   works: Work[]; // microCMSから取得した作品データ
 };
 
+// カテゴリー文字列の型
+type WorkCategory = NonNullable<Work["category"]>[number];
+
 export function Works({ works }: WorksProps) {
   const { animationsEnabled } = useAccessibility();
   const router = useRouter();
   const searchParams = useSearchParams();
   const MotionDiv = animationsEnabled ? motion.div : "div";
-
-  // コンソールでデータを確認
-  console.log("Works prop:", works);
+  const urlUpdateRef = useRef(false);
 
   // works が undefined/null の場合は空配列を使用
   const safeWorks = works || [];
@@ -62,7 +63,11 @@ export function Works({ works }: WorksProps) {
     サービスサイト: "サービスサイト",
     アーカイブサイト: "アーカイブサイト",
     ランディングページ: "ランディングページ",
+    個人案件: "個人案件",
+    業務案件: "業務案件",
+    採用サイト: "採用サイト",
   };
+
   // 存在するカテゴリーだけのリストを生成（「すべて」を含む）
   const categories: Category[] = [
     { id: "all", name: "すべて" },
@@ -72,79 +77,167 @@ export function Works({ works }: WorksProps) {
     })),
   ];
 
-  console.log("Available categories:", categories);
-
+  // 選択されたカテゴリーの状態管理（複数選択に対応）
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(["all"]);
   // モーダル表示のための状態
   const [selectedWorkIndex, setSelectedWorkIndex] = useState<number>(-1);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // 手動でモーダルを閉じたことを追跡するフラグ
-  const isClosingManually = useRef(false);
+  // カテゴリーでフィルタリングする純粋な関数
+  const getFilteredWorks = useCallback((works: Work[], categoryIds: string[]) => {
+    // 「すべて」が含まれているか、カテゴリーが選択されていない場合は全て表示
+    if (categoryIds.includes("all") || categoryIds.length === 0) {
+      return works;
+    }
 
-  // 選択されたカテゴリーの状態管理
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+    // いずれかの選択カテゴリーに一致する作品を表示
+    return works.filter((work) =>
+      work.category?.some((cat) => categoryIds.includes(cat as WorkCategory)),
+    );
+  }, []);
 
-  // URLパラメータからカテゴリーとプロジェクトを取得して設定
+  // カテゴリーでフィルタリングされた実績
+  const filteredWorks = getFilteredWorks(worksArray, selectedCategories);
+
+  // カテゴリー変更時の処理
+  const handleCategoryChange = useCallback((categoryId: string) => {
+    setSelectedCategories((prev) => {
+      let newCategories: string[];
+
+      // 「すべて」が選択された場合
+      if (categoryId === "all") {
+        newCategories = ["all"];
+      }
+      // 既に選択されている場合は選択解除
+      else if (prev.includes(categoryId)) {
+        newCategories = prev.filter((id) => id !== categoryId);
+        // 選択カテゴリーが空になった場合は「すべて」を選択
+        if (
+          newCategories.length === 0 ||
+          (newCategories.length === 1 && newCategories[0] === "all")
+        ) {
+          newCategories = ["all"];
+        }
+      }
+      // 新しいカテゴリーが選択された場合
+      else {
+        // 現在「すべて」だけが選択されていれば、それを除去
+        newCategories =
+          prev.includes("all") && prev.length === 1
+            ? [categoryId]
+            : [...prev.filter((id) => id !== "all"), categoryId];
+      }
+
+      return newCategories;
+    });
+  }, []);
+
+  // URLを更新する関数（状態変更とは分離）
+  const updateURL = useCallback(
+    (categories: string[], workSlug?: string | null) => {
+      urlUpdateRef.current = true;
+      const categoryParam = categories.join(",");
+      const url = workSlug
+        ? `?category=${categoryParam}&work=${workSlug}#works`
+        : `?category=${categoryParam}#works`;
+
+      router.push(url, { scroll: false });
+    },
+    [router],
+  );
+
+  // モーダルを開く関数
+  const openWorkModal = useCallback(
+    (index: number) => {
+      if (index >= 0 && index < filteredWorks.length) {
+        setSelectedWorkIndex(index);
+        setIsModalOpen(true);
+        updateURL(selectedCategories, filteredWorks[index].slug);
+      }
+    },
+    [filteredWorks, selectedCategories, updateURL],
+  );
+
+  // モーダルを閉じる関数
+  const closeModal = useCallback(() => {
+    setIsModalOpen(false);
+    updateURL(selectedCategories);
+  }, [selectedCategories, updateURL]);
+
+  // モーダル内でワークを切り替える関数
+  const navigateModal = useCallback(
+    (newIndex: number) => {
+      if (newIndex >= 0 && newIndex < filteredWorks.length) {
+        setSelectedWorkIndex(newIndex);
+        updateURL(selectedCategories, filteredWorks[newIndex].slug);
+      }
+    },
+    [filteredWorks, selectedCategories, updateURL],
+  );
+
+  // URLが変更されたときにステートを同期
   useEffect(() => {
-    // 手動で閉じた直後は処理をスキップ
-    if (isClosingManually.current) {
-      isClosingManually.current = false;
+    // 手動でURLを更新している場合はスキップ（無限ループ防止）
+    if (urlUpdateRef.current) {
+      urlUpdateRef.current = false;
       return;
     }
 
+    const categoryParam = searchParams.get("category");
     const workSlug = searchParams.get("work");
-    const category = searchParams.get("category");
 
-    // カテゴリーパラメータがある場合は設定
-    if (category && categories.some((c) => c.id === category)) {
-      setSelectedCategory(category);
+    // カテゴリーの更新
+    if (categoryParam) {
+      const categoryIds = categoryParam.split(",");
+      const validCategoryIds = categoryIds.filter(
+        (id) => id === "all" || categories.some((c) => c.id === id),
+      );
+
+      if (
+        validCategoryIds.length > 0 &&
+        JSON.stringify(validCategoryIds) !== JSON.stringify(selectedCategories)
+      ) {
+        setSelectedCategories(validCategoryIds);
+      }
     }
 
-    // ワークスラッグがある場合
+    // ワークの更新（URLパラメータから直接カテゴリーを取得して計算）
     if (workSlug) {
-      // 現在のカテゴリーでフィルタリングされたワーク一覧
-      const currentWorks =
-        category && category !== "all"
-          ? worksArray.filter((w) =>
-              w.category?.includes(
-                category as
-                  | "コーポレートサイト"
-                  | "ECサイト"
-                  | "サービスサイト"
-                  | "アーカイブサイト"
-                  | "ランディングページ",
-              ),
-            )
-          : worksArray;
+      const currentCategories = categoryParam
+        ? categoryParam
+            .split(",")
+            .filter((id) => id === "all" || categories.some((c) => c.id === id))
+        : ["all"];
 
-      // ワークのインデックスを検索
+      const currentWorks = getFilteredWorks(worksArray, currentCategories);
       const workIndex = currentWorks.findIndex((w) => w.slug === workSlug);
+
       if (workIndex !== -1) {
         setSelectedWorkIndex(workIndex);
         setIsModalOpen(true);
       }
     } else {
-      // ワークスラッグがない場合はモーダルを閉じる
       setIsModalOpen(false);
     }
-  }, [searchParams, worksArray]); // categoriesは削除
+  }, [searchParams, categories, worksArray, getFilteredWorks, selectedCategories]);
 
-  // カテゴリーでフィルタリングされた実績
-  const filteredWorks =
-    selectedCategory === "all"
-      ? worksArray
-      : worksArray.filter((work) =>
-          work.category?.includes(
-            selectedCategory as
-              | "コーポレートサイト"
-              | "ECサイト"
-              | "サービスサイト"
-              | "アーカイブサイト"
-              | "ランディングページ",
-          ),
-        );
+  // カテゴリー選択が変更されたときにURLを更新
+  useEffect(() => {
+    // URLのワークスラッグを取得
+    const workSlug = searchParams.get("work");
 
-  console.log("Filtered works:", filteredWorks);
+    // URLが既に更新中の場合はスキップ
+    if (urlUpdateRef.current) return;
+
+    // 選択されているワークがある場合とない場合でURLを更新
+    if (isModalOpen && selectedWorkIndex >= 0 && selectedWorkIndex < filteredWorks.length) {
+      updateURL(selectedCategories, filteredWorks[selectedWorkIndex].slug);
+    } else if (workSlug) {
+      updateURL(selectedCategories, workSlug);
+    } else {
+      updateURL(selectedCategories);
+    }
+  }, [selectedCategories, filteredWorks, isModalOpen, selectedWorkIndex, searchParams, updateURL]);
 
   // データがなければメッセージを表示
   if (worksArray.length === 0) {
@@ -166,34 +259,6 @@ export function Works({ works }: WorksProps) {
     );
   }
 
-  // ワーク詳細を表示する関数
-  const openWorkModal = (index: number) => {
-    const workSlug = filteredWorks[index].slug;
-    // URLにパラメータを追加（カテゴリーも含める）
-    router.push(`?category=${selectedCategory}&work=${workSlug}#works`, { scroll: false });
-    setSelectedWorkIndex(index);
-    setIsModalOpen(true);
-  };
-
-  // モーダルを閉じる関数
-  const closeModal = () => {
-    // 手動で閉じるフラグを設定
-    isClosingManually.current = true;
-
-    // モーダルを閉じる
-    setIsModalOpen(false);
-
-    // URLからプロジェクトパラメータを削除
-    router.push(`?category=${selectedCategory}#works`, { scroll: false });
-  };
-
-  // カテゴリー変更時の処理
-  const handleCategoryChange = (categoryId: string) => {
-    setSelectedCategory(categoryId);
-    // URLのカテゴリーパラメータを更新
-    router.push(`?category=${categoryId}#works`, { scroll: false });
-  };
-
   return (
     <section id="works" className="w-full py-12 md:py-24 lg:py-32">
       <div className="container px-4 md:px-6 mx-auto">
@@ -205,12 +270,8 @@ export function Works({ works }: WorksProps) {
           transition={{ duration: 0.5 }}
         >
           <div className="space-y-2">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-              実績一覧
-            </h2>
-            <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-              アクセシビリティを重視した制作実績をご紹介します
-            </p>
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">WORKS</h2>
+            <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">制作実績</p>
           </div>
         </MotionDiv>
 
@@ -218,7 +279,7 @@ export function Works({ works }: WorksProps) {
           {categories.map((category) => (
             <Button
               key={category.id}
-              variant={selectedCategory === category.id ? "default" : "outline"}
+              variant={selectedCategories.includes(category.id) ? "default" : "outline"}
               onClick={() => handleCategoryChange(category.id)}
               className="m-1"
             >
@@ -236,37 +297,48 @@ export function Works({ works }: WorksProps) {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <Card className="h-full flex flex-col overflow-hidden group">
-                <CardHeader className="p-0">
-                  <div className="overflow-hidden">
+              <Card className="h-full flex flex-col overflow-hidden group pt-0">
+                <CardHeader className="p-0 gap-0">
+                  <div className="overflow-hidden aspect-[810/504]">
                     <Image
                       src={
                         work.thumbnail && work.thumbnail.length > 0
                           ? work.thumbnail[0].url
                           : "/placeholder.svg"
                       }
-                      alt={`${work.title}のサムネイル`}
-                      className="w-full h-48 object-cover transition-transform group-hover:scale-105 duration-300"
+                      alt=""
+                      className="w-full h-full object-cover duration-300"
                       width={400}
                       height={300}
                     />
                   </div>
                 </CardHeader>
-                <CardContent className="flex-grow p-6">
-                  <div className="mb-2 flex flex-wrap gap-1">
+                <CardContent className="flex-grow">
+                  <div className="mb-4 flex flex-wrap gap-1">
                     {work.category?.map((categoryId, idx) => {
                       const category = categories.find((c) => c.id === categoryId);
                       return category ? (
-                        <Badge key={idx} variant="secondary">
+                        <Badge key={idx} variant="outline">
                           {category.name}
                         </Badge>
                       ) : null;
                     })}
                   </div>
-                  <CardTitle className="mb-2">{work.title}</CardTitle>
-                  <CardDescription>{work.description}</CardDescription>
+                  <CardTitle className="mb-2 text-lg">{work.title}</CardTitle>
+                  <CardDescription className="text-sm line-clamp-3">
+                    {work.description}
+                  </CardDescription>
+                  <div className="mt-4 flex flex-wrap gap-1">
+                    {work.technologies?.map((technology, idx) => {
+                      return (
+                        <Badge key={idx} variant="secondary">
+                          {technology}
+                        </Badge>
+                      );
+                    })}
+                  </div>
                 </CardContent>
-                <CardFooter className="px-6 pb-6 pt-0">
+                <CardFooter className="pt-0">
                   <Button className="w-full" onClick={() => openWorkModal(index)}>
                     詳細を見る
                   </Button>
@@ -284,11 +356,7 @@ export function Works({ works }: WorksProps) {
           currentIndex={selectedWorkIndex}
           isOpen={isModalOpen}
           onClose={closeModal}
-          onNavigate={(newIndex) => {
-            const workSlug = filteredWorks[newIndex].slug;
-            router.push(`?category=${selectedCategory}&work=${workSlug}#works`, { scroll: false });
-            setSelectedWorkIndex(newIndex);
-          }}
+          onNavigate={navigateModal}
         />
       )}
     </section>
