@@ -1,23 +1,25 @@
-// src/app/page.tsx
-import { client } from "@/libs/client";
+import { Header, Hero, Footer } from "@/components/layout/";
+import { Works, About, Philosophy } from "@/components/page";
+import { client } from "@/lib/client";
 import { Work } from "@/cms/types/generated/work";
+import { Suspense } from "react";
 
-const Home = async () => {
-  const data = await client.getList<Work>({ endpoint: "works" });
-  console.log(data);
-
+export default async function Home() {
+  const works = await client.getList<Work>({ endpoint: "works" });
   return (
-    <main className="p-6">
-      <div className="grid gap-4">
-        {data.contents.map((work) => (
-          <div key={work.id}>
-            <h2>{work.title}</h2>
-            <p>{work.description}</p>
-          </div>
-        ))}
-      </div>
-    </main>
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <main className="flex-1">
+        <Hero />
+        <About />
+        <Philosophy />
+        <Suspense
+          fallback={<div className="container mx-auto px-4 py-12 text-center">読み込み中...</div>}
+        >
+          <Works works={works.contents} />
+        </Suspense>
+      </main>
+      <Footer />
+    </div>
   );
-};
-
-export default Home;
+}
