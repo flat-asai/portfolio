@@ -7,6 +7,10 @@ import { AccessibilityProvider } from "@/components/ui";
 export const metadata: Metadata = {
   title: "Yasuna A. Portfolio",
   description: "初めまして。ポートフォリオサイトです。ゆっくりしていってください。",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RootLayout({
