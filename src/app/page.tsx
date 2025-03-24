@@ -6,7 +6,7 @@ import { Category } from "@/cms/types/generated/category";
 import { Suspense } from "react";
 
 export default async function Home() {
-  const works = await client.getList<Work>({ endpoint: "works" });
+  const works = await client.getList<Work>({ endpoint: "works", queries: { limit: 100 } });
   const categories = await client.getList<Category>({ endpoint: "category" });
 
   return (
