@@ -342,10 +342,10 @@ export function Works({ works }: WorksProps) {
       return;
     }
     // URLパラメータがない状態でWorksセクションにアクセスした場合
-    if (currentHash === "#works" && !searchParams.toString()) return;
+    if (currentHash === "#works" && !searchParams?.toString()) return;
 
-    const categoryParam = searchParams.get("category");
-    const workSlug = searchParams.get("work");
+    const categoryParam = searchParams?.get("category");
+    const workSlug = searchParams?.get("work");
 
     // カテゴリーの更新
     if (categoryParam) {
@@ -392,7 +392,7 @@ export function Works({ works }: WorksProps) {
     const currentHash = window.location.hash;
     if (currentHash === "#works") {
       // URLのワークスラッグを取得
-      const workSlug = searchParams.get("work");
+      const workSlug = searchParams?.get("work");
 
       // ユーザーが明示的にカテゴリーを変更した場合のみ更新
       const userChangedCategories =
@@ -401,7 +401,7 @@ export function Works({ works }: WorksProps) {
       if (!userChangedCategories) {
         // デフォルト状態の場合でも、既にURLにパラメータがある場合はクリーンにする
         if (
-          searchParams.toString() &&
+          searchParams?.toString() &&
           selectedCategories.length === 1 &&
           selectedCategories[0] === "all" &&
           !isModalOpen
