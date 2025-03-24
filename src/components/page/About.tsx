@@ -106,7 +106,7 @@ export function About() {
   const MotionDiv = animationsEnabled ? motion.div : "div";
 
   // Create a function to handle motion props
-  const getMotionProps = (props) => {
+  const getMotionProps = (props: Record<string, unknown>) => {
     return animationsEnabled ? props : {};
   };
 
@@ -116,8 +116,8 @@ export function About() {
         <MotionDiv
           className="mx-auto w-full max-w-5xl overflow-hidden rounded-xl object-cover object-center sm:w-full"
           {...getMotionProps({
-            initial: { opacity: 0, x: -50 },
-            whileInView: { opacity: 1, x: 0 },
+            initial: { opacity: 0, y: 20 },
+            whileInView: { opacity: 1, y: 0 },
             viewport: { once: true },
             transition: { duration: 0.5, delay: 0.2 },
           })}
@@ -130,8 +130,8 @@ export function About() {
           <MotionDiv
             className="mx-auto aspect-square w-full max-w-[500px] overflow-hidden rounded-xl object-cover object-center sm:w-full"
             {...getMotionProps({
-              initial: { opacity: 0, x: -50 },
-              whileInView: { opacity: 1, x: 0 },
+              initial: { opacity: 0, y: 20 },
+              whileInView: { opacity: 1, y: 0 },
               viewport: { once: true },
               transition: { duration: 0.5, delay: 0.2 },
             })}
@@ -147,8 +147,8 @@ export function About() {
           <MotionDiv
             className="flex flex-col justify-center space-y-4"
             {...getMotionProps({
-              initial: { opacity: 0, x: 50 },
-              whileInView: { opacity: 1, x: 0 },
+              initial: { opacity: 0, y: 20 },
+              whileInView: { opacity: 1, y: 0 },
               viewport: { once: true },
               transition: { duration: 0.5, delay: 0.4 },
             })}
@@ -180,7 +180,14 @@ export function About() {
           </MotionDiv>
         </div>
 
-        <MotionDiv>
+        <MotionDiv
+          {...getMotionProps({
+            initial: { opacity: 0, y: 20 },
+            whileInView: { opacity: 1, y: 0 },
+            viewport: { once: true },
+            transition: { duration: 0.5, delay: 0.6 },
+          })}
+        >
           <section className="relative border pt-10 pb-6 px-6 rounded-md">
             <h3 className="absolute px-4 py-2 z-10 top-0 left-4 mb-4 flex items-center gap-4 -translate-y-1/2 bg-background">
               <span

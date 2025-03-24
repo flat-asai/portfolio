@@ -71,6 +71,7 @@ export type Work = {
     | "Storybook"
     | "Google Maps JavaScript API"
     | "Vercel"
+    | "Shopify"
   )[];
   /**
    * 制作期間

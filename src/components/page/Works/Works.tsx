@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useAccessibility, Heading } from "@/components/ui/";
+import { useAccessibility, Heading, Badge, Button } from "@/components/ui/";
 import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
 import {
   Card,
   CardContent,
@@ -26,7 +24,7 @@ type WorksProps = {
   categories: Category[]; // microCMSから取得したカテゴリーデータ
 };
 
-export function Works({ works, categories }: WorksProps) {
+export function Works({ works }: WorksProps) {
   const { animationsEnabled } = useAccessibility();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -40,11 +38,6 @@ export function Works({ works, categories }: WorksProps) {
     const safeWorks = works || [];
     return Array.isArray(safeWorks) ? safeWorks : [];
   }, [works]);
-
-  const categoriesArray = useMemo(() => {
-    const safeCategories = categories || [];
-    return Array.isArray(safeCategories) ? safeCategories : [];
-  }, [categories]);
 
   // 実績データから存在するカテゴリーキーを抽出
   const existingCategoryIds = useMemo(() => {
@@ -64,23 +57,6 @@ export function Works({ works, categories }: WorksProps) {
 
     return keys;
   }, [worksArray]);
-
-  // デバッグ用にログ出力
-  useEffect(() => {
-    console.log("Works配列:", worksArray);
-    console.log("カテゴリー配列:", categoriesArray);
-    console.log("存在するカテゴリーキー:", [...existingCategoryIds]);
-
-    // カテゴリーの詳細情報を出力
-    if (categoriesArray.length > 0) {
-      console.log("カテゴリー0の詳細:", categoriesArray[0]);
-    }
-
-    // Works[0]のカテゴリー情報があれば詳細を出力
-    if (worksArray.length > 0 && worksArray[0].category && worksArray[0].category.length > 0) {
-      console.log("Works[0]のカテゴリー0:", worksArray[0].category[0]);
-    }
-  }, [worksArray, categoriesArray, existingCategoryIds]);
 
   // カテゴリーキーからカテゴリーオブジェクトを取得する関数
   const getCategoryByKey = useCallback(
@@ -146,14 +122,10 @@ export function Works({ works, categories }: WorksProps) {
 
     return options;
   }, [existingCategoryIds, getCategoryByKey]);
-  // カテゴリーオプションをログ出力（デバッグ用）
-  useEffect(() => {
-    console.log("Category Options:", categoryOptions);
-  }, [categoryOptions]);
 
   // 選択されたカテゴリーの状態管理
   const [selectedCategories, setSelectedCategories] = useState<string[]>(["all"]);
-  const [selectedWorkIndex, setSelectedWorkIndex] = useState<number>(-1);
+  const [selectedWorkSlug, setSelectedWorkSlug] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // カテゴリーでフィルタリングする関数
@@ -197,25 +169,25 @@ export function Works({ works, categories }: WorksProps) {
     });
   }, []);
 
-  // カテゴリーの順番でソートする関数
-  const getSortedByCategory = useCallback((works: Work[]) => {
-    return [...works].sort((a, b) => {
-      // カテゴリーがない場合は後ろに配置
-      if (!a.category?.length) return 1;
-      if (!b.category?.length) return -1;
+  // // カテゴリーの順番でソートする関数
+  // const getSortedByCategory = useCallback((works: Work[]) => {
+  //   return [...works].sort((a, b) => {
+  //     // カテゴリーがない場合は後ろに配置
+  //     if (!a.category?.length) return 1;
+  //     if (!b.category?.length) return -1;
 
-      // 最初のカテゴリーを比較基準にする
-      const aCat = a.category[0] as CategoryRelation;
-      const bCat = b.category[0] as CategoryRelation;
+  //     // 最初のカテゴリーを比較基準にする
+  //     const aCat = a.category[0] as CategoryRelation;
+  //     const bCat = b.category[0] as CategoryRelation;
 
-      // カテゴリーキーを比較
-      if (aCat?.key && bCat?.key) {
-        return aCat.key.localeCompare(bCat.key);
-      }
+  //     // カテゴリーキーを比較
+  //     if (aCat?.key && bCat?.key) {
+  //       return aCat.key.localeCompare(bCat.key);
+  //     }
 
-      return 0;
-    });
-  }, []);
+  //     return 0;
+  //   });
+  // }, []);
 
   const getCategoryMapping = useCallback(() => {
     const mapping = {
@@ -255,9 +227,9 @@ export function Works({ works, categories }: WorksProps) {
   const filteredWorks = useMemo(() => {
     // まずフィルタリング
     const filtered = getFilteredWorks(worksArray, selectedCategories);
-    // カテゴリー順でソート
-    return getSortedByCategory(filtered);
-  }, [worksArray, selectedCategories, getFilteredWorks, getSortedByCategory]);
+
+    return filtered;
+  }, [worksArray, selectedCategories, getFilteredWorks]);
 
   // URLを更新する関数
   const updateURL = useCallback(
@@ -327,9 +299,11 @@ export function Works({ works, categories }: WorksProps) {
   const openWorkModal = useCallback(
     (index: number) => {
       if (index >= 0 && index < filteredWorks.length) {
-        setSelectedWorkIndex(index);
+        // インデックスを直接保存する代わりにスラグを保存
+        const workSlug = filteredWorks[index].slug;
+        setSelectedWorkSlug(workSlug);
         setIsModalOpen(true);
-        updateURL(selectedCategories, filteredWorks[index].slug);
+        updateURL(selectedCategories, workSlug);
       }
     },
     [filteredWorks, selectedCategories, updateURL],
@@ -345,8 +319,10 @@ export function Works({ works, categories }: WorksProps) {
   const navigateModal = useCallback(
     (newIndex: number) => {
       if (newIndex >= 0 && newIndex < filteredWorks.length) {
-        setSelectedWorkIndex(newIndex);
-        updateURL(selectedCategories, filteredWorks[newIndex].slug);
+        // インデックスを直接保存する代わりにスラグを保存
+        const workSlug = filteredWorks[newIndex].slug;
+        setSelectedWorkSlug(workSlug);
+        updateURL(selectedCategories, workSlug);
       }
     },
     [filteredWorks, selectedCategories, updateURL],
@@ -365,11 +341,8 @@ export function Works({ works, categories }: WorksProps) {
     if (currentHash && currentHash !== "#works") {
       return;
     }
-
     // URLパラメータがない状態でWorksセクションにアクセスした場合
-    if (currentHash === "#works" && !searchParams.toString()) {
-      return;
-    }
+    if (currentHash === "#works" && !searchParams.toString()) return;
 
     const categoryParam = searchParams.get("category");
     const workSlug = searchParams.get("work");
@@ -389,25 +362,14 @@ export function Works({ works, categories }: WorksProps) {
       }
     }
 
-    // ワークの更新
+    // ワークの更新 - スラグベースで処理
     if (workSlug) {
-      const currentCategories = categoryParam
-        ? categoryParam
-            .split(",")
-            .filter((id) => id === "all" || categoryOptions.some((c) => c.id === id))
-        : ["all"];
-
-      const currentWorks = getFilteredWorks(worksArray, currentCategories);
-      const workIndex = currentWorks.findIndex((w) => w.slug === workSlug);
-
-      if (workIndex !== -1) {
-        setSelectedWorkIndex(workIndex);
-        setIsModalOpen(true);
-      }
+      setSelectedWorkSlug(workSlug);
+      setIsModalOpen(true);
     } else {
       setIsModalOpen(false);
     }
-  }, [searchParams, categoryOptions, worksArray, getFilteredWorks, selectedCategories]);
+  }, [searchParams, categoryOptions, selectedCategories]);
 
   // カテゴリー選択が変更されたときにURLを更新
   useEffect(() => {
@@ -421,8 +383,8 @@ export function Works({ works, categories }: WorksProps) {
     if (urlUpdateRef.current) return;
 
     // モーダルが開いている場合は必ずURLを更新する
-    if (isModalOpen && selectedWorkIndex >= 0 && selectedWorkIndex < filteredWorks.length) {
-      updateURL(selectedCategories, filteredWorks[selectedWorkIndex].slug);
+    if (isModalOpen && selectedWorkSlug) {
+      updateURL(selectedCategories, selectedWorkSlug);
       return;
     }
 
@@ -449,7 +411,6 @@ export function Works({ works, categories }: WorksProps) {
         }
         return;
       }
-
       // 選択されているワークがある場合とない場合でURLを更新
       if (workSlug && isModalOpen) {
         updateURL(selectedCategories, workSlug);
@@ -462,7 +423,7 @@ export function Works({ works, categories }: WorksProps) {
     selectedCategories,
     filteredWorks,
     isModalOpen,
-    selectedWorkIndex,
+    selectedWorkSlug,
     searchParams,
     updateURL,
     pathname,
@@ -487,7 +448,7 @@ export function Works({ works, categories }: WorksProps) {
     );
   }
 
-  const getMotionProps = (props) => {
+  const getMotionProps = (props: Record<string, unknown>) => {
     return animationsEnabled ? props : {};
   };
 
@@ -518,6 +479,7 @@ export function Works({ works, categories }: WorksProps) {
                     variant={selectedCategories.includes(category.id) ? "default" : "outline"}
                     onClick={() => handleCategoryChange(category.id)}
                     className="m-1"
+                    size="sm"
                   >
                     {category.name}
                   </Button>
@@ -554,6 +516,7 @@ export function Works({ works, categories }: WorksProps) {
                     onClick={() => handleCategoryChange(category.id)}
                     className={`m-1 ${visuallyDisabled ? "cursor-not-allowed hover:no-underline bg-border text-muted-foreground" : ""}`}
                     disabled={visuallyDisabled}
+                    size="sm"
                   >
                     {category.name}
                   </Button>
@@ -568,6 +531,7 @@ export function Works({ works, categories }: WorksProps) {
                 variant={selectedCategories.includes("all") ? "default" : "outline"}
                 onClick={() => handleCategoryChange("all")}
                 className="m-1 w-full"
+                size="sm"
               >
                 すべて
               </Button>
@@ -649,10 +613,11 @@ export function Works({ works, categories }: WorksProps) {
       </div>
 
       {/* ワーク詳細モーダル */}
-      {isModalOpen && selectedWorkIndex >= 0 && filteredWorks.length > 0 && (
+      {isModalOpen && selectedWorkSlug && filteredWorks.length > 0 && (
         <ProjectModal
           works={filteredWorks}
-          currentIndex={selectedWorkIndex}
+          // インデックスではなくスラグを使用してインデックスを計算
+          currentIndex={filteredWorks.findIndex((w) => w.slug === selectedWorkSlug)}
           isOpen={isModalOpen}
           onClose={closeModal}
           onNavigate={navigateModal}

@@ -4,7 +4,7 @@ import type React from "react";
 import type { Work } from "@/cms/types/generated/work";
 import { CategoryRelation } from "@/cms/types/category-relation";
 
-import { useEffect, useState } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { X, ChevronLeft, ChevronRight, SquareArrowOutUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -29,46 +29,67 @@ export function ProjectModal({
   onNavigate,
 }: ProjectModalProps) {
   const { animationsEnabled } = useAccessibility();
-  const [slideDirection, setSlideDirection] = useState<"left" | "right" | null>(null);
-  const [isAnimating, setIsAnimating] = useState(false);
 
   const currentWork = works[currentIndex];
   const isFirstProject = currentIndex === 0;
   const isLastProject = currentIndex === works.length - 1;
 
+  const modalContentRef = useRef<HTMLDivElement>(null);
+  const mainPageScrollPos = useRef(0);
+
+  // モーダルが開いたときにメインページのスクロール位置を保存
+  useEffect(() => {
+    if (isOpen) {
+      mainPageScrollPos.current = window.scrollY;
+    }
+  }, [isOpen]);
+
+  // スクロール位置をリセットする関数
+  const resetScroll = useCallback(() => {
+    if (modalContentRef.current) {
+      modalContentRef.current.scrollTop = 0;
+    }
+  }, []);
+
+  // AnimatePresenceのモードをwaitからsyncに変更
+  // これにより、退場アニメーションが完了する前に次のコンテンツが入場できるようになる
+  const animatePresenceMode = "sync";
+
+  // ナビゲーション時のハンドラー
+  const handleNavigate = useCallback(
+    (newIndex: number) => {
+      // 即座にコンテンツを変更し、AnimatePresenceにトランジションを任せる
+      onNavigate(newIndex);
+
+      // 次のフレームでスクロールをリセット（見えないタイミングでリセット）
+      requestAnimationFrame(() => {
+        resetScroll();
+      });
+    },
+    [onNavigate, resetScroll],
+  );
+
   // 前のプロジェクトに移動
-  const navigateToPrevious = () => {
-    if (isAnimating || isFirstProject) return;
-
-    setIsAnimating(true);
-    setSlideDirection("right");
-
-    const newIndex = currentIndex - 1;
-    setTimeout(
-      () => {
-        onNavigate(newIndex);
-        setIsAnimating(false);
-      },
-      animationsEnabled ? 300 : 0,
-    );
-  };
+  const navigateToPrevious = useCallback(() => {
+    if (!isFirstProject) {
+      handleNavigate(currentIndex - 1);
+    }
+  }, [handleNavigate, currentIndex, isFirstProject]);
 
   // 次のプロジェクトに移動
-  const navigateToNext = () => {
-    if (isAnimating || isLastProject) return;
+  const navigateToNext = useCallback(() => {
+    if (!isLastProject) {
+      handleNavigate(currentIndex + 1);
+    }
+  }, [handleNavigate, currentIndex, isLastProject]);
 
-    setIsAnimating(true);
-    setSlideDirection("left");
-
-    const newIndex = currentIndex + 1;
-    setTimeout(
-      () => {
-        onNavigate(newIndex);
-        setIsAnimating(false);
-      },
-      animationsEnabled ? 300 : 0,
-    );
-  };
+  // モーダルの表示が変わったらメインページのスクロール位置を維持
+  useEffect(() => {
+    if (isOpen && currentWork) {
+      // メインページのスクロール位置を維持
+      window.scrollTo(0, mainPageScrollPos.current);
+    }
+  }, [isOpen, currentWork]);
 
   // ESCキーでモーダルを閉じる
   useEffect(() => {
@@ -93,16 +114,7 @@ export function ProjectModal({
       // モーダル閉じたらスクロールを有効化
       document.body.style.overflow = "auto";
     };
-  }, [
-    isOpen,
-    onClose,
-    currentIndex,
-    works.length,
-    isFirstProject,
-    isLastProject,
-    navigateToPrevious,
-    navigateToNext,
-  ]);
+  }, [isOpen, onClose, isFirstProject, isLastProject, navigateToPrevious, navigateToNext]);
 
   // モーダル外クリックで閉じる
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -117,30 +129,6 @@ export function ProjectModal({
     onClose();
   };
 
-  // スライドアニメーションの設定
-  const slideVariants = {
-    enterFromRight: {
-      x: "100%",
-      opacity: 0,
-    },
-    enterFromLeft: {
-      x: "-100%",
-      opacity: 0,
-    },
-    center: {
-      x: 0,
-      opacity: 1,
-    },
-    exitToLeft: {
-      x: "-100%",
-      opacity: 0,
-    },
-    exitToRight: {
-      x: "100%",
-      opacity: 0,
-    },
-  };
-
   if (!isOpen || !currentWork) return null;
 
   // サムネイル画像のURLを取得
@@ -151,7 +139,7 @@ export function ProjectModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 pt-4 pb-10 md:p-4 backdrop-blur-sm"
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
@@ -168,6 +156,7 @@ export function ProjectModal({
           <X className="h-5 w-5" />
         </Button>
         <motion.div
+          ref={modalContentRef}
           className="relative max-h-[90vh] w-full max-w-4xl overflow-auto rounded-lg bg-background shadow-lg"
           initial={animationsEnabled ? { opacity: 0, scale: 0.95 } : {}}
           animate={animationsEnabled ? { opacity: 1, scale: 1 } : {}}
@@ -175,36 +164,26 @@ export function ProjectModal({
           transition={{ duration: 0.2 }}
           onClick={(e) => e.stopPropagation()}
         >
-          <AnimatePresence initial={false} mode="wait">
+          <AnimatePresence mode={animatePresenceMode}>
             <motion.div
               key={currentWork.slug}
-              initial={
-                animationsEnabled
-                  ? slideDirection === "left"
-                    ? slideVariants.enterFromRight
-                    : slideVariants.enterFromLeft
-                  : {}
-              }
-              animate={animationsEnabled ? slideVariants.center : {}}
-              exit={
-                animationsEnabled
-                  ? slideDirection === "left"
-                    ? slideVariants.exitToLeft
-                    : slideVariants.exitToRight
-                  : {}
-              }
-              transition={{ duration: 0.3, ease: "easeInOut" }}
+              initial={animationsEnabled ? { opacity: 0 } : {}}
+              animate={animationsEnabled ? { opacity: 1 } : {}}
+              exit={animationsEnabled ? { opacity: 0 } : {}}
+              transition={{ duration: 0.2 }}
             >
-              <div className="relative aspect-[3/2]">
-                <Image
-                  src={thumbnailUrl}
-                  alt=""
-                  className="h-full w-full object-cover"
-                  width={800}
-                  height={600}
-                />
-                <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-background to-transparent" />
-                <div className="absolute bottom-0 left-0 p-6 flex flex-col-reverse gap-4">
+              <div className="relative aspect-[3/2] overflow-hidden">
+                <div className="absolute inset-0">
+                  <Image
+                    src={thumbnailUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    width={800}
+                    height={600}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-background to-transparent" />
+                </div>
+                <div className="md:absolute md:bottom-0 md:left-0 p-4 md:p-6 flex flex-col-reverse gap-4">
                   <h2
                     id="project-modal-title"
                     className="text-2xl md:text-4xl font-bold text-foreground mb-2"
@@ -226,20 +205,20 @@ export function ProjectModal({
                 </div>
               </div>
 
-              <div className="p-6 space-y-6">
-                <section className="relative border pt-10 pb-6 px-6 rounded-md">
-                  <h3 className="absolute px-4 py-2 z-10 top-0 left-4 mb-4 flex items-center gap-4 -translate-y-1/2 bg-background">
+              <div className="p-4 md:p-6 space-y-6">
+                <section className="relative border pt-10 pb-6 px-4 md:px-6 rounded-md">
+                  <h3 className="absolute px-2 md:px-4 py-2 z-10 top-0 left-2 md:left-4 mb-4 flex items-center gap-4 -translate-y-1/2 bg-background">
                     <span
-                      className="text-2xl md:text-3xl font-semibold"
+                      className="text-xl md:text-3xl font-semibold"
                       style={{ fontFamily: "var(--font-montserrat)" }}
                       aria-hidden="true"
                     >
                       Overview
                     </span>
-                    <span className="text-md text-muted-foreground">概要</span>
+                    <span className="text-sm md:text-base text-muted-foreground">概要</span>
                   </h3>
                   <p
-                    className="text-md leading-relaxed mb-8 whitespace-pre-line"
+                    className="text-sm md:text-base leading-loose mb-8 whitespace-pre-line"
                     dangerouslySetInnerHTML={{ __html: currentWork.description || "" }}
                   />
 
@@ -272,16 +251,16 @@ export function ProjectModal({
                   {currentWork.duration && (
                     <section className="flex flex-col md:flex-row gap-4 md:items-center border-t pt-4 mt-4">
                       <h4 className="text-md font-semibold min-w-[6em]">制作期間</h4>
-                      <p className="text-md">{currentWork.duration}</p>
+                      <p className="text-sm md:text-md">{currentWork.duration}</p>
                     </section>
                   )}
                 </section>
 
                 {currentWork.body && (
-                  <section>
+                  <section className="pb-6">
                     <h3 className="sr-only">詳細</h3>
                     <div
-                      className="text-md leading-relaxed rich-text-content"
+                      className="rich-text-content"
                       dangerouslySetInnerHTML={{ __html: currentWork.body }}
                     />
                   </section>
@@ -307,7 +286,7 @@ export function ProjectModal({
           </AnimatePresence>
         </motion.div>
         {/* ナビゲーションボタン */}
-        <div className="absolute left-[-8px] top-1/2 z-10 -translate-y-1/2 -translate-x-[100%]">
+        <div className="absolute left-0 md:left-[-8px] top-[calc(100%+8px)] md:top-1/2 z-10 md:translate-y-1/2 md:-translate-x-[100%]">
           <Button
             variant="outline"
             size="icon"
@@ -323,7 +302,7 @@ export function ProjectModal({
           </Button>
         </div>
 
-        <div className="absolute right-[-8px] top-1/2 z-10 -translate-y-1/2 -translate-x-[-100%]">
+        <div className="absolute right-0 md:right-[-8px] top-[calc(100%+8px)] md:top-1/2 z-10 md:translate-y-1/2 md:-translate-x-[-100%]">
           <Button
             variant="outline"
             size="icon"

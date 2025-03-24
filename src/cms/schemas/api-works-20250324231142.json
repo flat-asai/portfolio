@@ -65,7 +65,8 @@
         { "id": "eS9TrX0g4U", "value": "ESLint / Prettier" },
         { "id": "vIs5_jkYeb", "value": "Storybook" },
         { "id": "eCBThjhfRM", "value": "Google Maps JavaScript API" },
-        { "id": "e7xB3BTMVS", "value": "Vercel" }
+        { "id": "e7xB3BTMVS", "value": "Vercel" },
+        { "id": "34IVg1m9yy", "value": "Shopify" }
       ],
       "selectInitialValue": [],
       "multipleSelect": true

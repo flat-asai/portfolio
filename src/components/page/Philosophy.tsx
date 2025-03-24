@@ -46,7 +46,7 @@ export function Philosophy() {
     },
   ];
 
-  const getMotionProps = (props) => {
+  const getMotionProps = (props: Record<string, unknown>) => {
     return animationsEnabled ? props : {};
   };
 
