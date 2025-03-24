@@ -1,0 +1,7 @@
+{
+  "apiFields": [
+    { "idValue": "XVhUTieaZb", "fieldId": "key", "name": "キー", "kind": "text", "isUnique": true },
+    { "fieldId": "value", "name": "バリュー", "kind": "text" }
+  ],
+  "customFields": []
+}

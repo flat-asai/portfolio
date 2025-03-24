@@ -1,41 +1,140 @@
 "use client";
 
-import { useAccessibility } from "@/components/ui/AccessibilityProvider";
+import { useAccessibility, Heading } from "@/components/ui";
 import { motion } from "framer-motion";
+import { SquareArrowOutUpRight } from "lucide-react";
+import Link from "next/link";
 import Image from "next/image";
-import profileImage from "@/assets/images/dummy.png";
+import profileImage from "@/assets/images/about/profile.jpg";
 
 export function About() {
+  const profileItems = [
+    {
+      title: "基本情報",
+      items: [
+        { name: "名前", value: "浅井 泰名" },
+        { name: "出身地", value: "愛知県" },
+      ],
+    },
+    {
+      title: "使用技術",
+      items: [
+        {
+          name: "言語・フレームワーク",
+          value: "HTML & CSS / TypeScript / Astro / React / Next.js",
+        },
+        {
+          name: "スタイリング",
+          value: "Sass（BEM・FLOCSS設計） / CSS Modules / Tailwind CSS / Shadcn UI",
+        },
+        { name: "CMS", value: "WordPress / microCMS / ローカルサーバー" },
+        { name: "ツール・その他", value: "GitHub Actions / Figma / Adobe XD / Cursor" },
+      ],
+    },
+    {
+      title: "SNS",
+      items: [
+        {
+          name: "GitHub",
+          value: (
+            <Link
+              href="https://github.com/flat-asai"
+              className="underline"
+              aria-label="GitHubへのリンク"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              https://github.com/flat-asai
+              <SquareArrowOutUpRight className="w-4 h-4 inline-block ml-1" />
+            </Link>
+          ),
+        },
+        {
+          name: "Wantedly",
+          value: (
+            <Link
+              href="https://www.wantedly.com/id/yas613a"
+              className="underline"
+              aria-label="Wantedlyへのリンク"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              https://www.wantedly.com/id/yas613a
+              <SquareArrowOutUpRight className="w-4 h-4 inline-block ml-1" />
+            </Link>
+          ),
+        },
+      ],
+    },
+    {
+      title: "その他",
+      items: [
+        {
+          name: "登壇（2025年1月）",
+          value: (
+            <Link
+              href="https://cssnight.connpass.com/event/296699/"
+              className="underline"
+              aria-label="登壇のリンク"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              CSS Night #朝までマークアップ 2（CSS編）
+              <SquareArrowOutUpRight className="w-4 h-4 inline-block ml-1" />
+            </Link>
+          ),
+        },
+        {
+          name: "インタビュー（2023年8月）",
+          value: (
+            <Link
+              href="https://ttj.paiza.jp/archives/2023/08/02/10111/"
+              className="underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              『女性エンジニアが語る「活躍」について：一人ひとりのライフプランに合わせた働き方へ』
+              <SquareArrowOutUpRight className="w-4 h-4 inline-block ml-1" />
+            </Link>
+          ),
+        },
+      ],
+    },
+  ];
   const { animationsEnabled } = useAccessibility();
 
   const MotionDiv = animationsEnabled ? motion.div : "div";
 
+  // Create a function to handle motion props
+  const getMotionProps = (props: Record<string, unknown>) => {
+    return animationsEnabled ? props : {};
+  };
+
   return (
     <section id="about" className="w-full py-12 md:py-24 lg:py-32">
-      <div className="container px-4 md:px-6 mx-auto">
+      <div className="max-w-5xl px-4 md:px-6 mx-auto">
         <MotionDiv
-          className="flex flex-col items-center justify-center space-y-4 text-center"
-          initial={animationsEnabled ? { opacity: 0, y: 20 } : {}}
-          whileInView={animationsEnabled ? { opacity: 1, y: 0 } : {}}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          className="mx-auto w-full max-w-5xl overflow-hidden rounded-xl object-cover object-center sm:w-full"
+          {...getMotionProps({
+            initial: { opacity: 0, y: 20 },
+            whileInView: { opacity: 1, y: 0 },
+            viewport: { once: true },
+            transition: { duration: 0.5, delay: 0.2 },
+          })}
         >
-          <div className="space-y-2">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-              私について
-            </h2>
-            <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-              アクセシビリティとユーザー体験を最優先に考えたWebサイト制作を行っています
-            </p>
+          <div>
+            <Heading subTitle="About me">私について</Heading>
           </div>
         </MotionDiv>
         <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-2 lg:gap-12">
           <MotionDiv
             className="mx-auto aspect-square w-full max-w-[500px] overflow-hidden rounded-xl object-cover object-center sm:w-full"
-            initial={animationsEnabled ? { opacity: 0, x: -50 } : {}}
-            whileInView={animationsEnabled ? { opacity: 1, x: 0 } : {}}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            {...getMotionProps({
+              initial: { opacity: 0, y: 20 },
+              whileInView: { opacity: 1, y: 0 },
+              viewport: { once: true },
+              transition: { duration: 0.5, delay: 0.2 },
+            })}
           >
             <Image
               alt="プロフィール写真"
@@ -47,27 +146,77 @@ export function About() {
           </MotionDiv>
           <MotionDiv
             className="flex flex-col justify-center space-y-4"
-            initial={animationsEnabled ? { opacity: 0, x: 50 } : {}}
-            whileInView={animationsEnabled ? { opacity: 1, x: 0 } : {}}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            {...getMotionProps({
+              initial: { opacity: 0, y: 20 },
+              whileInView: { opacity: 1, y: 0 },
+              viewport: { once: true },
+              transition: { duration: 0.5, delay: 0.4 },
+            })}
           >
             <div className="space-y-2">
-              <h3 className="text-2xl font-bold tracking-tighter sm:text-3xl">
-                アクセシビリティへの主体的な取り組み
+              <h3 className="text-2xl md:text-4xl font-bold tracking-tighter leading-relaxed mb-8">
+                アクセシビリティと、
+                <br />
+                すべての人のためのWebを。
               </h3>
-              <p className="text-muted-foreground md:text-lg">
-                私はWebが好きです。その理由のひとつに、Webが持つ「すべての人々がアクセスできる可能性」に魅力を感じているからです。
-              </p>
-              <p className="text-muted-foreground md:text-lg">
-                だからこそ、障がいのある方々や多様な利用環境に配慮し、誰もが同じ情報と体験を享受できるWebサイトを作りたいと考えています。
-              </p>
-              <p className="text-muted-foreground md:text-lg">
-                私にとって、Webは単に情報を提供する手段ではなく、すべての人が平等にアクセスできる場所であってほしいと思っています。
-              </p>
+              <div className="space-y-2 md:text-lg leading-relaxed">
+                <p>私はWebが好きです。</p>
+                <p>
+                  その理由のひとつに、「すべての人々がアクセスできる可能性」がWebにはあると思っているからです。
+                </p>
+                <p>
+                  だからこそ、障がいのある方々や、使う環境がそれぞれ異なる方々にも配慮しながら、
+                  <br />
+                  誰もが同じように情報と体験を享受できるWebサイトをつくりたいと考えています。
+                </p>
+                <p>
+                  Webは、ただ情報を届けるための手段ではなく、
+                  <br />
+                  すべての人が平等にアクセスできる場所であってほしい。
+                </p>
+                <p>そう願いながら、日々の制作に取り組んでいます。</p>
+              </div>
             </div>
           </MotionDiv>
         </div>
+
+        <MotionDiv
+          {...getMotionProps({
+            initial: { opacity: 0, y: 20 },
+            whileInView: { opacity: 1, y: 0 },
+            viewport: { once: true },
+            transition: { duration: 0.5, delay: 0.6 },
+          })}
+        >
+          <section className="relative border pt-10 pb-6 px-6 rounded-md">
+            <h3 className="absolute px-4 py-2 z-10 top-0 left-4 mb-4 flex items-center gap-4 -translate-y-1/2 bg-background">
+              <span
+                className="text-2xl md:text-3xl font-semibold uppercase"
+                style={{ fontFamily: "var(--font-montserrat)" }}
+                aria-hidden="true"
+              >
+                Profile
+              </span>
+              <span className="text-md font-semibold text-muted-foreground">プロフィール</span>
+            </h3>
+            {profileItems.map((item, index) => (
+              <section
+                key={index}
+                className={`flex flex-col gap-4 ${index !== 0 ? "border-t pt-4 mt-4" : ""}`}
+              >
+                <h4 className="text-md font-semibold min-w-[12em]">{item.title}</h4>
+                <dl className="text-sm flex flex-col gap-2 leading-relaxed">
+                  {item.items.map((item, index) => (
+                    <div className="md:flex gap-2" key={index}>
+                      <dt className="min-w-[12em]">{item.name}</dt>
+                      <dd className="break-all">{item.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+            ))}
+          </section>
+        </MotionDiv>
       </div>
     </section>
   );

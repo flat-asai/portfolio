@@ -1,4 +1,4 @@
-import { MicroCMSImage } from "./microcms-schema";
+import { MicroCMSRelation, MicroCMSImage } from "./microcms-schema";
 
 export type Work = {
   /**
@@ -71,6 +71,7 @@ export type Work = {
     | "Storybook"
     | "Google Maps JavaScript API"
     | "Vercel"
+    | "Shopify"
   )[];
   /**
    * 制作期間
@@ -81,17 +82,7 @@ export type Work = {
    */
   url?: string;
   /**
-   * 種別
-   */
-  type?: ["個人案件" | "業務案件"];
-  /**
    * カテゴリー
    */
-  category?: [
-    | "コーポレートサイト"
-    | "ECサイト"
-    | "サービスサイト"
-    | "アーカイブサイト"
-    | "ランディングページ",
-  ];
+  category: MicroCMSRelation<unknown | null>[];
 };

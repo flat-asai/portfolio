@@ -1,6 +1,6 @@
 "use client";
 
-import { useAccessibility } from "@/components/ui/AccessibilityProvider";
+import { useAccessibility, Heading } from "@/components/ui/";
 import { motion } from "framer-motion";
 import { Heart, Users, Eye, Key, Speaker, Lightbulb } from "lucide-react";
 
@@ -23,14 +23,15 @@ export function Philosophy() {
     },
     {
       icon: <Eye className="h-10 w-10 text-primary" />,
-      title: "視覚的な明瞭さ",
-      description: "コントラスト比や文字サイズ、色の使い方など、視覚的な読みやすさを重視します。",
+      title: "情報の伝わりやすさを設計",
+      description:
+        "情報の構造や文章表現、視覚的な階層など、コンテンツが迷いなく伝わる設計を心がけます。",
     },
     {
       icon: <Key className="h-10 w-10 text-primary" />,
-      title: "キーボード操作の最適化",
+      title: "共同制作への配慮",
       description:
-        "マウスを使わなくても全ての機能にアクセスできるよう、キーボード操作を最適化します。",
+        "デザイナーや他の開発者と連携しやすいよう、構造や命名、コミュニケーションのしやすさにも気を配っています。",
     },
     {
       icon: <Speaker className="h-10 w-10 text-primary" />,
@@ -45,38 +46,41 @@ export function Philosophy() {
     },
   ];
 
+  const getMotionProps = (props: Record<string, unknown>) => {
+    return animationsEnabled ? props : {};
+  };
+
   return (
     <section id="philosophy" className="w-full py-12 md:py-24 lg:py-32 bg-muted">
       <div className="container px-4 md:px-6 mx-auto">
         <MotionDiv
-          className="flex flex-col items-center justify-center space-y-4 text-center"
-          initial={animationsEnabled ? { opacity: 0, y: 20 } : {}}
-          whileInView={animationsEnabled ? { opacity: 1, y: 0 } : {}}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          className="max-w-5xl mx-auto space-y-4"
+          {...getMotionProps({
+            initial: { opacity: 0, y: 20 },
+            whileInView: { opacity: 1, y: 0 },
+            viewport: { once: true },
+            transition: { duration: 0.5 },
+          })}
         >
           <div className="space-y-2">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-              制作への考え方
-            </h2>
-            <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-              内側からやさしいサイト制作を心がけています
-            </p>
+            <Heading subTitle="Philosophy">制作への考え方</Heading>
           </div>
         </MotionDiv>
         <div className="mx-auto grid max-w-5xl gap-6 py-12 md:grid-cols-2 lg:grid-cols-3">
           {philosophyItems.map((item, index) => (
             <MotionDiv
               key={index}
-              className="flex flex-col items-center space-y-2 rounded-lg border p-6 shadow-sm"
-              initial={animationsEnabled ? { opacity: 0, y: 20 } : {}}
-              whileInView={animationsEnabled ? { opacity: 1, y: 0 } : {}}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="flex flex-col bg-background items-center space-y-2 rounded-lg border p-6 shadow-sm"
+              {...getMotionProps({
+                initial: { opacity: 0, y: 20 },
+                whileInView: { opacity: 1, y: 0 },
+                viewport: { once: true },
+                transition: { duration: 0.5, delay: index * 0.1 },
+              })}
             >
               <div className="p-2">{item.icon}</div>
               <h3 className="text-xl font-bold">{item.title}</h3>
-              <p className="text-center text-muted-foreground">{item.description}</p>
+              <p className="text-muted-foreground">{item.description}</p>
             </MotionDiv>
           ))}
         </div>

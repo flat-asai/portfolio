@@ -8,7 +8,7 @@
       "required": true
     },
     { "fieldId": "slug", "name": "スラッグ", "kind": "text", "required": true, "isUnique": true },
-    { "fieldId": "description", "name": "概要", "kind": "textArea" },
+    { "fieldId": "description", "name": "概要", "kind": "textArea", "required": false },
     { "fieldId": "body", "name": "詳細説明", "kind": "richEditorV2" },
     { "fieldId": "thumbnail", "name": "サムネイル画像", "kind": "mediaList" },
     {
@@ -65,39 +65,15 @@
         { "id": "eS9TrX0g4U", "value": "ESLint / Prettier" },
         { "id": "vIs5_jkYeb", "value": "Storybook" },
         { "id": "eCBThjhfRM", "value": "Google Maps JavaScript API" },
-        { "id": "e7xB3BTMVS", "value": "Vercel" }
+        { "id": "e7xB3BTMVS", "value": "Vercel" },
+        { "id": "34IVg1m9yy", "value": "Shopify" }
       ],
       "selectInitialValue": [],
       "multipleSelect": true
     },
     { "fieldId": "duration", "name": "制作期間", "kind": "text" },
     { "fieldId": "url", "name": "URL", "kind": "text" },
-    {
-      "fieldId": "type",
-      "name": "種別",
-      "kind": "select",
-      "required": false,
-      "selectItems": [
-        { "id": "AlpY42cxT6", "value": "個人案件" },
-        { "id": "bD2tSySJth", "value": "業務案件" }
-      ],
-      "selectInitialValue": [],
-      "multipleSelect": false
-    },
-    {
-      "fieldId": "category",
-      "name": "カテゴリー",
-      "kind": "select",
-      "selectItems": [
-        { "id": "miv9iqJN4m", "value": "コーポレートサイト" },
-        { "id": "0BbeEZOM_Y", "value": "ECサイト" },
-        { "id": "C8-dhR7xFB", "value": "サービスサイト" },
-        { "id": "jN25R0TRKw", "value": "アーカイブサイト" },
-        { "id": "3o7p7V2Q6c", "value": "ランディングページ" }
-      ],
-      "selectInitialValue": [],
-      "multipleSelect": false
-    }
+    { "fieldId": "category", "name": "カテゴリー", "kind": "relationList", "required": true }
   ],
   "customFields": []
 }
