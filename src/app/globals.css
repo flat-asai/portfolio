@@ -120,3 +120,37 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* リッチテキストのスタイル */
+.rich-text-content {
+  @apply flex flex-col gap-6 items-start;
+}
+.rich-text-content h2 {
+  @apply relative text-2xl md:text-3xl font-semibold mt-4 mb-2;
+}
+/*
+.rich-text-content h3 {
+  @apply relative text-xl md:text-2xl font-semibold mt-6 mb-3;
+}
+
+.rich-text-content h3 strong {
+  @apply relative z-10 bg-background pr-4;
+}
+
+.rich-text-content h3::before {
+  @apply content-[''] block w-full h-[1px] z-0 bg-border absolute top-1/2 -translate-y-1/2 left-0;
+}
+
+.rich-text-content h4 {
+  @apply text-lg md:text-xl font-semibold mt-5 mb-2;
+}
+
+*/
+
+.rich-text-content h3 {
+  @apply text-base font-semibold border py-1 px-6 rounded-md inline-block;
+}
+
+.rich-text-content p {
+  @apply text-sm md:text-base leading-relaxed;
+}

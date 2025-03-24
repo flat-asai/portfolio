@@ -10,14 +10,16 @@ export const Header = () => {
   const navItems = [
     { href: "#about", label: "私について" },
     { href: "#philosophy", label: "制作への考え方" },
-    { href: "#projects", label: "実績一覧" },
+    { href: "#works", label: "実績一覧" },
   ];
 
   return (
     <header className="sticky top-0 py-4 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="w-full px-8 grid grid-cols-2 md:grid-cols-[auto_1fr_auto] gap-4 items-center">
         <Link href="/" className="flex items-center space-x-2">
-          <span className="font-bold text-xl">Yasuna A.</span>
+          <span className="font-bold text-xl" style={{ fontFamily: "var(--font-montserrat)" }}>
+            Yasuna A.
+          </span>
         </Link>
         <nav className="col-span-2 md:col-span-1 flex gap-6">
           {navItems.map((item) => (

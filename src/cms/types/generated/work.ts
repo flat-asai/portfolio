@@ -1,4 +1,4 @@
-import { MicroCMSImage } from "./microcms-schema";
+import { MicroCMSRelation, MicroCMSImage } from "./microcms-schema";
 
 export type Work = {
   /**
@@ -83,13 +83,5 @@ export type Work = {
   /**
    * カテゴリー
    */
-  category: (
-    | "個人案件"
-    | "業務案件"
-    | "コーポレートサイト"
-    | "サービスサイト"
-    | "採用サイト"
-    | "ランディングページ"
-    | "ECサイト"
-  )[];
+  category: MicroCMSRelation<unknown | null>[];
 };

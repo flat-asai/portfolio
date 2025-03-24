@@ -72,23 +72,7 @@
     },
     { "fieldId": "duration", "name": "制作期間", "kind": "text" },
     { "fieldId": "url", "name": "URL", "kind": "text" },
-    {
-      "fieldId": "category",
-      "name": "カテゴリー",
-      "kind": "select",
-      "required": true,
-      "selectItems": [
-        { "id": "p--qn_Iu00", "value": "個人案件" },
-        { "id": "9LT2hKB4yj", "value": "業務案件" },
-        { "id": "JA1uIvRRQF", "value": "コーポレートサイト" },
-        { "id": "rQg4_numwi", "value": "サービスサイト" },
-        { "id": "KEMlU9GicI", "value": "採用サイト" },
-        { "id": "Kemm_gxblX", "value": "ランディングページ" },
-        { "id": "g9CzlEKvXc", "value": "ECサイト" }
-      ],
-      "selectInitialValue": ["JA1uIvRRQF"],
-      "multipleSelect": true
-    }
+    { "fieldId": "category", "name": "カテゴリー", "kind": "relationList", "required": true }
   ],
   "customFields": []
 }

@@ -2,9 +2,10 @@
 
 import type React from "react";
 import type { Work } from "@/cms/types/generated/work";
+import { CategoryRelation } from "@/cms/types/category-relation";
 
 import { useEffect, useState } from "react";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, SquareArrowOutUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { useAccessibility } from "@/components/ui/AccessibilityProvider";
@@ -34,44 +35,6 @@ export function ProjectModal({
   const currentWork = works[currentIndex];
   const isFirstProject = currentIndex === 0;
   const isLastProject = currentIndex === works.length - 1;
-
-  // ESCキーでモーダルを閉じる
-  useEffect(() => {
-    const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      } else if (event.key === "ArrowLeft" && !isFirstProject) {
-        navigateToPrevious();
-      } else if (event.key === "ArrowRight" && !isLastProject) {
-        navigateToNext();
-      }
-    };
-
-    if (isOpen) {
-      window.addEventListener("keydown", handleEsc);
-      // モーダル表示時にスクロールを無効化
-      document.body.style.overflow = "hidden";
-    }
-
-    return () => {
-      window.removeEventListener("keydown", handleEsc);
-      // モーダル閉じたらスクロールを有効化
-      document.body.style.overflow = "auto";
-    };
-  }, [isOpen, onClose, currentIndex, works.length, isFirstProject, isLastProject]);
-
-  // モーダル外クリックで閉じる
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
-  // 閉じるボタンのクリックハンドラー - イベント伝播を停止
-  const handleCloseClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onClose();
-  };
 
   // 前のプロジェクトに移動
   const navigateToPrevious = () => {
@@ -107,6 +70,53 @@ export function ProjectModal({
     );
   };
 
+  // ESCキーでモーダルを閉じる
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      } else if (event.key === "ArrowLeft" && !isFirstProject) {
+        navigateToPrevious();
+      } else if (event.key === "ArrowRight" && !isLastProject) {
+        navigateToNext();
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener("keydown", handleEsc);
+      // モーダル表示時にスクロールを無効化
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+      // モーダル閉じたらスクロールを有効化
+      document.body.style.overflow = "auto";
+    };
+  }, [
+    isOpen,
+    onClose,
+    currentIndex,
+    works.length,
+    isFirstProject,
+    isLastProject,
+    navigateToPrevious,
+    navigateToNext,
+  ]);
+
+  // モーダル外クリックで閉じる
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  // 閉じるボタンのクリックハンドラー - イベント伝播を停止
+  const handleCloseClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onClose();
+  };
+
   // スライドアニメーションの設定
   const slideVariants = {
     enterFromRight: {
@@ -136,7 +146,7 @@ export function ProjectModal({
   // サムネイル画像のURLを取得
   const thumbnailUrl =
     currentWork.thumbnail && currentWork.thumbnail.length > 0
-      ? currentWork.thumbnail[0].url
+      ? currentWork.thumbnail[1]?.url || currentWork.thumbnail[0].url
       : "/placeholder.svg";
 
   return (
@@ -147,14 +157,7 @@ export function ProjectModal({
       aria-modal="true"
       aria-labelledby="project-modal-title"
     >
-      <motion.div
-        className="relative max-h-[90vh] w-full max-w-4xl overflow-auto rounded-lg bg-background shadow-lg"
-        initial={animationsEnabled ? { opacity: 0, scale: 0.95 } : {}}
-        animate={animationsEnabled ? { opacity: 1, scale: 1 } : {}}
-        exit={animationsEnabled ? { opacity: 0, scale: 0.95 } : {}}
-        transition={{ duration: 0.2 }}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="relative">
         <Button
           variant="ghost"
           size="icon"
@@ -164,15 +167,153 @@ export function ProjectModal({
         >
           <X className="h-5 w-5" />
         </Button>
+        <motion.div
+          className="relative max-h-[90vh] w-full max-w-4xl overflow-auto rounded-lg bg-background shadow-lg"
+          initial={animationsEnabled ? { opacity: 0, scale: 0.95 } : {}}
+          animate={animationsEnabled ? { opacity: 1, scale: 1 } : {}}
+          exit={animationsEnabled ? { opacity: 0, scale: 0.95 } : {}}
+          transition={{ duration: 0.2 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <AnimatePresence initial={false} mode="wait">
+            <motion.div
+              key={currentWork.slug}
+              initial={
+                animationsEnabled
+                  ? slideDirection === "left"
+                    ? slideVariants.enterFromRight
+                    : slideVariants.enterFromLeft
+                  : {}
+              }
+              animate={animationsEnabled ? slideVariants.center : {}}
+              exit={
+                animationsEnabled
+                  ? slideDirection === "left"
+                    ? slideVariants.exitToLeft
+                    : slideVariants.exitToRight
+                  : {}
+              }
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              <div className="relative aspect-[3/2]">
+                <Image
+                  src={thumbnailUrl}
+                  alt=""
+                  className="h-full w-full object-cover"
+                  width={800}
+                  height={600}
+                />
+                <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-background to-transparent" />
+                <div className="absolute bottom-0 left-0 p-6 flex flex-col-reverse gap-4">
+                  <h2
+                    id="project-modal-title"
+                    className="text-2xl md:text-4xl font-bold text-foreground mb-2"
+                  >
+                    {currentWork.title}
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {currentWork.category?.map((categoryRelation, idx) => {
+                      const relation = categoryRelation as CategoryRelation;
+                      if (!relation || typeof relation !== "object" || !relation.key) return null;
 
+                      return (
+                        <Badge key={idx} variant="outline">
+                          {relation.value || relation.key}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-6">
+                <section className="relative border pt-10 pb-6 px-6 rounded-md">
+                  <h3 className="absolute px-4 py-2 z-10 top-0 left-4 mb-4 flex items-center gap-4 -translate-y-1/2 bg-background">
+                    <span
+                      className="text-2xl md:text-3xl font-semibold"
+                      style={{ fontFamily: "var(--font-montserrat)" }}
+                      aria-hidden="true"
+                    >
+                      Overview
+                    </span>
+                    <span className="text-md text-muted-foreground">概要</span>
+                  </h3>
+                  <p
+                    className="text-md leading-relaxed mb-8 whitespace-pre-line"
+                    dangerouslySetInnerHTML={{ __html: currentWork.description || "" }}
+                  />
+
+                  {currentWork.roles && currentWork.roles.length > 0 && (
+                    <section className="flex flex-col md:flex-row gap-4 md:items-center">
+                      <h4 className="text-md font-semibold min-w-[6em]">担当範囲</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {currentWork.roles.map((role, index) => (
+                          <Badge key={index} variant="secondary">
+                            {role}
+                          </Badge>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {currentWork.technologies && currentWork.technologies.length > 0 && (
+                    <section className="flex flex-col md:flex-row gap-4 md:items-center border-t pt-4 mt-4">
+                      <h4 className="text-md font-semibold min-w-[6em]">使用技術</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {currentWork.technologies?.map((tech, index) => (
+                          <Badge key={index} variant="secondary">
+                            {tech}
+                          </Badge>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {currentWork.duration && (
+                    <section className="flex flex-col md:flex-row gap-4 md:items-center border-t pt-4 mt-4">
+                      <h4 className="text-md font-semibold min-w-[6em]">制作期間</h4>
+                      <p className="text-md">{currentWork.duration}</p>
+                    </section>
+                  )}
+                </section>
+
+                {currentWork.body && (
+                  <section>
+                    <h3 className="sr-only">詳細</h3>
+                    <div
+                      className="text-md leading-relaxed rich-text-content"
+                      dangerouslySetInnerHTML={{ __html: currentWork.body }}
+                    />
+                  </section>
+                )}
+                <div className="sticky bottom-6">
+                  {currentWork.url && (
+                    <Button asChild>
+                      <a
+                        href={currentWork.url}
+                        target="_blank"
+                        className="block w-full"
+                        rel="noopener noreferrer"
+                        aria-label="サイトを開く"
+                      >
+                        {currentWork.url}
+                        <SquareArrowOutUpRight className="w-5 h-5" />
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
         {/* ナビゲーションボタン */}
-        <div className="absolute left-4 top-1/2 z-10 -translate-y-1/2">
+        <div className="absolute left-[-8px] top-1/2 z-10 -translate-y-1/2 -translate-x-[100%]">
           <Button
             variant="outline"
             size="icon"
             className={cn(
-              "h-10 w-10 rounded-full bg-background/80 backdrop-blur-sm",
-              isFirstProject && "opacity-50 cursor-not-allowed",
+              "h-10 w-10 rounded-full bg-background/80 backdrop-blur-md",
+              isFirstProject && "opacity-0 invisible cursor-not-allowed",
             )}
             onClick={navigateToPrevious}
             disabled={isFirstProject}
@@ -182,13 +323,13 @@ export function ProjectModal({
           </Button>
         </div>
 
-        <div className="absolute right-4 top-1/2 z-10 -translate-y-1/2">
+        <div className="absolute right-[-8px] top-1/2 z-10 -translate-y-1/2 -translate-x-[-100%]">
           <Button
             variant="outline"
             size="icon"
             className={cn(
-              "h-10 w-10 rounded-full bg-background/80 backdrop-blur-sm",
-              isLastProject && "opacity-50 cursor-not-allowed",
+              "h-10 w-10 rounded-full bg-background/80 backdrop-blur-md",
+              isLastProject && "opacity-0 invisible cursor-not-allowed",
             )}
             onClick={navigateToNext}
             disabled={isLastProject}
@@ -197,106 +338,7 @@ export function ProjectModal({
             <ChevronRight className="h-6 w-6" />
           </Button>
         </div>
-
-        <AnimatePresence initial={false} mode="wait">
-          <motion.div
-            key={currentWork.slug}
-            initial={
-              animationsEnabled
-                ? slideDirection === "left"
-                  ? slideVariants.enterFromRight
-                  : slideVariants.enterFromLeft
-                : {}
-            }
-            animate={animationsEnabled ? slideVariants.center : {}}
-            exit={
-              animationsEnabled
-                ? slideDirection === "left"
-                  ? slideVariants.exitToLeft
-                  : slideVariants.exitToRight
-                : {}
-            }
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-          >
-            <div className="relative h-64 sm:h-80 md:h-96">
-              <Image
-                src={thumbnailUrl}
-                alt={`${currentWork.title}のメイン画像`}
-                className="h-full w-full object-cover"
-                width={800}
-                height={600}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
-              <div className="absolute bottom-0 left-0 p-6">
-                <h2 id="project-modal-title" className="text-2xl font-bold text-foreground mb-2">
-                  {currentWork.title}
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {currentWork.technologies?.map((tech, index) => (
-                    <Badge
-                      key={index}
-                      variant="outline"
-                      className="bg-background/80 backdrop-blur-sm"
-                    >
-                      {tech}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6 space-y-6">
-              <div>
-                <h3 className="text-xl font-semibold mb-2">プロジェクト概要</h3>
-                <p className="text-muted-foreground">{currentWork.description}</p>
-              </div>
-
-              {currentWork.body && (
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">詳細</h3>
-                  <div
-                    className="text-muted-foreground"
-                    dangerouslySetInnerHTML={{ __html: currentWork.body }}
-                  />
-                </div>
-              )}
-
-              {currentWork.roles && currentWork.roles.length > 0 && (
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">担当した作業範囲</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {currentWork.roles.map((role, index) => (
-                      <Badge key={index} variant="secondary">
-                        {role}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {currentWork.duration && (
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">制作期間</h3>
-                  <p className="text-muted-foreground">{currentWork.duration}</p>
-                </div>
-              )}
-
-              <div className="pt-4 flex justify-between items-center">
-                <div className="text-sm text-muted-foreground">
-                  {currentIndex + 1} / {works.length}
-                </div>
-                {currentWork.url && (
-                  <Button asChild>
-                    <a href={currentWork.url} target="_blank" rel="noopener noreferrer">
-                      サイトを見る
-                    </a>
-                  </Button>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </motion.div>
+      </div>
     </div>
   );
 }

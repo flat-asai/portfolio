@@ -7,4 +7,8 @@ export const REFERENCE_MAP: Record<string, string> = {
    * 実績
    */
   Si5fQCnv7u: "Works",
+  /**
+   * カテゴリー
+   */
+  XVhUTieaZb: "Category",
 };
