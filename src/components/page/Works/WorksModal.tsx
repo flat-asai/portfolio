@@ -145,7 +145,7 @@ export function ProjectModal({
       aria-modal="true"
       aria-labelledby="project-modal-title"
     >
-      <div className="relative">
+      <div className="relative w-full max-w-4xl">
         <Button
           variant="ghost"
           size="icon"
@@ -157,7 +157,7 @@ export function ProjectModal({
         </Button>
         <motion.div
           ref={modalContentRef}
-          className="relative max-h-[90vh] w-full max-w-4xl overflow-auto rounded-lg bg-background shadow-lg"
+          className="relative max-h-[calc(90dvh-60px)] md:max-h-[90vh] w-full overflow-auto rounded-lg bg-background shadow-lg"
           initial={animationsEnabled ? { opacity: 0, scale: 0.95 } : {}}
           animate={animationsEnabled ? { opacity: 1, scale: 1 } : {}}
           exit={animationsEnabled ? { opacity: 0, scale: 0.95 } : {}}
@@ -172,18 +172,18 @@ export function ProjectModal({
               exit={animationsEnabled ? { opacity: 0 } : {}}
               transition={{ duration: 0.2 }}
             >
-              <div className="relative aspect-[3/2] overflow-hidden">
-                <div className="absolute inset-0">
+              <div className="relative">
+                <div className="relative aspect-[3/2] overflow-hidden">
                   <Image
                     src={thumbnailUrl}
                     alt=""
-                    className="h-full w-full object-cover"
+                    className="md:absolute inset-0 h-full w-full object-cover"
                     width={800}
                     height={600}
                   />
                   <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-background to-transparent" />
                 </div>
-                <div className="md:absolute md:bottom-0 md:left-0 p-4 md:p-6 flex flex-col-reverse gap-4">
+                <div className="relative md:absolute md:bottom-0 md:left-0 p-4 md:p-6 flex flex-col-reverse gap-4">
                   <h2
                     id="project-modal-title"
                     className="text-2xl md:text-4xl font-bold text-foreground mb-2"
@@ -191,21 +191,35 @@ export function ProjectModal({
                     {currentWork.title}
                   </h2>
                   <div className="flex flex-wrap gap-2">
-                    {currentWork.category?.map((categoryRelation, idx) => {
-                      const relation = categoryRelation as CategoryRelation;
-                      if (!relation || typeof relation !== "object" || !relation.key) return null;
+                    {currentWork.category
+                      ?.slice()
+                      .sort((a, b) => {
+                        const aRelation = a as CategoryRelation;
+                        const bRelation = b as CategoryRelation;
+                        const priorityOrder = ["inhouse", "external", "self"];
 
-                      return (
-                        <Badge key={idx} variant="outline">
-                          {relation.value || relation.key}
-                        </Badge>
-                      );
-                    })}
+                        const aIndex = priorityOrder.indexOf(aRelation.key || "");
+                        const bIndex = priorityOrder.indexOf(bRelation.key || "");
+
+                        if (aIndex >= 0 && bIndex >= 0) return aIndex - bIndex;
+                        if (aIndex >= 0) return -1;
+                        if (bIndex >= 0) return 1;
+                        return 0;
+                      })
+                      .map((categoryRelation, idx) => {
+                        const relation = categoryRelation as CategoryRelation;
+                        if (!relation || typeof relation !== "object" || !relation.key) return null;
+
+                        return (
+                          <Badge key={idx} variant="outline">
+                            {relation.value || relation.key}
+                          </Badge>
+                        );
+                      })}
                   </div>
                 </div>
               </div>
-
-              <div className="p-4 md:p-6 space-y-6">
+              <div className="p-4 md:p-8 space-y-6">
                 <section className="relative border pt-10 pb-6 px-4 md:px-6 rounded-md">
                   <h3 className="absolute px-2 md:px-4 py-2 z-10 top-0 left-2 md:left-4 mb-4 flex items-center gap-4 -translate-y-1/2 bg-background">
                     <span
