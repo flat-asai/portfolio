@@ -79,8 +79,10 @@ export function Philosophy() {
               })}
             >
               <div className="p-2">{item.icon}</div>
-              <h3 className="text-xl font-bold">{item.title}</h3>
-              <p className="text-muted-foreground">{item.description}</p>
+              <h3 className="text-base md:text-xl font-bold leading-relaxed">{item.title}</h3>
+              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                {item.description}
+              </p>
             </MotionDiv>
           ))}
         </div>
