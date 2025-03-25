@@ -220,7 +220,7 @@ export function ProjectModal({
                 </div>
               </div>
               <div className="p-4 md:p-8 space-y-6">
-                <section className="relative border pt-10 pb-6 px-4 md:px-6 rounded-md">
+                <section className="relative border pt-6 md:pt-10 pb-6 px-4 md:px-6 rounded-md">
                   <h3 className="absolute px-2 md:px-4 py-2 z-10 top-0 left-2 md:left-4 mb-4 flex items-center gap-4 -translate-y-1/2 bg-background">
                     <span
                       className="text-xl md:text-3xl font-semibold"

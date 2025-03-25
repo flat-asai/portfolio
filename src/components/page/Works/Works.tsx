@@ -470,7 +470,7 @@ export function Works({ works }: WorksProps) {
             transition: { duration: 0.5 },
           })}
         >
-          <div>
+          <div className="max-md:text-center">
             <Heading subTitle="Works">実績一覧</Heading>
           </div>
 
