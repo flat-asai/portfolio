@@ -73,13 +73,14 @@ export function About() {
           name: "登壇（2025年1月）",
           value: (
             <Link
-              href="https://cssnight.connpass.com/event/296699/"
+              href="https://cssnite.doorkeeper.jp/events/179874"
               className="underline hover:no-underline"
               aria-label="登壇のリンク"
               target="_blank"
               rel="noopener noreferrer"
             >
-              CSS Night #朝までマークアップ 2（CSS編）
+              CSS Night
+              #朝までマークアップ2（CSS編）『現場で役立つ失敗しないレイアウト作り！vw/vhの実践テクニック』
               <SquareArrowOutUpRight className="w-4 h-4 inline-block ml-1" />
             </Link>
           ),
