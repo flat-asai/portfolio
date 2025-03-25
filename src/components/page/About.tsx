@@ -209,7 +209,7 @@ export function About() {
                 <dl className="text-sm flex flex-col gap-2 leading-relaxed">
                   {item.items.map((item, index) => (
                     <div className="md:flex gap-2" key={index}>
-                      <dt className="min-w-[12em]">{item.name}</dt>
+                      <dt className="min-w-[12em] max-md:font-bold">{item.name}</dt>
                       <dd className="break-words">{item.value}</dd>
                     </div>
                   ))}
