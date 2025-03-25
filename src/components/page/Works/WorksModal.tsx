@@ -279,7 +279,7 @@ export function ProjectModal({
                     />
                   </section>
                 )}
-                <div className="sticky bottom-6 md:bottom-8">
+                <div className="sticky bottom-6 md:bottom-8 z-20">
                   {currentWork.url && (
                     <Button asChild>
                       <a

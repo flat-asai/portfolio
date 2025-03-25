@@ -115,6 +115,7 @@ export function Hero() {
                         className="w-full h-full object-cover"
                         width={810}
                         height={504}
+                        loading="eager"
                       />
                     </div>
                   ))}
@@ -147,6 +148,7 @@ export function Hero() {
                         className="w-full h-full object-cover"
                         width={810}
                         height={504}
+                        loading="eager"
                       />
                     </div>
                   ))}
