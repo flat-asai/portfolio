@@ -289,7 +289,8 @@ export function ProjectModal({
                         rel="noopener noreferrer"
                         aria-label="サイトを開く"
                       >
-                        {currentWork.url}
+                        <span className="max-md:hidden">{currentWork.url}</span>
+                        <span className="md:hidden">サイトを見る</span>
                         <SquareArrowOutUpRight className="w-5 h-5" />
                       </a>
                     </Button>
