@@ -21,7 +21,7 @@ export default function RootLayout({
   return (
     <html
       lang="ja"
-      className={`${notoSansJP.variable} ${montserrat.variable}`}
+      className={`${notoSansJP.variable} ${montserrat.variable} max-md:scroll-pt-20 scroll-smooth`}
       suppressHydrationWarning
     >
       <body className={`${notoSansJP.className}`}>
