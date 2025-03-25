@@ -21,13 +21,13 @@ export function About() {
       items: [
         {
           name: "言語・フレームワーク",
-          value: "HTML & CSS / TypeScript / Astro / React / Next.js",
+          value: "HTML & CSS / TypeScript / Astro / React（1年未満） / Next.js（1年未満）",
         },
         {
           name: "スタイリング",
           value: "Sass（BEM・FLOCSS設計） / CSS Modules / Tailwind CSS / Shadcn UI",
         },
-        { name: "CMS", value: "WordPress / microCMS / ローカルサーバー" },
+        { name: "CMS", value: "WordPress / microCMS" },
         { name: "ツール・その他", value: "GitHub Actions / Figma / Adobe XD / Cursor" },
       ],
     },
@@ -39,7 +39,7 @@ export function About() {
           value: (
             <Link
               href="https://github.com/flat-asai"
-              className="underline"
+              className="underline hover:no-underline"
               aria-label="GitHubへのリンク"
               target="_blank"
               rel="noopener noreferrer"
@@ -54,7 +54,7 @@ export function About() {
           value: (
             <Link
               href="https://www.wantedly.com/id/yas613a"
-              className="underline"
+              className="underline hover:no-underline"
               aria-label="Wantedlyへのリンク"
               target="_blank"
               rel="noopener noreferrer"
@@ -74,7 +74,7 @@ export function About() {
           value: (
             <Link
               href="https://cssnight.connpass.com/event/296699/"
-              className="underline"
+              className="underline hover:no-underline"
               aria-label="登壇のリンク"
               target="_blank"
               rel="noopener noreferrer"
@@ -89,7 +89,7 @@ export function About() {
           value: (
             <Link
               href="https://ttj.paiza.jp/archives/2023/08/02/10111/"
-              className="underline"
+              className="underline hover:no-underline"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -209,7 +209,7 @@ export function About() {
                   {item.items.map((item, index) => (
                     <div className="md:flex gap-2" key={index}>
                       <dt className="min-w-[12em]">{item.name}</dt>
-                      <dd className="break-all">{item.value}</dd>
+                      <dd className="break-words">{item.value}</dd>
                     </div>
                   ))}
                 </dl>

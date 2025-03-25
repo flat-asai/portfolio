@@ -81,7 +81,7 @@ export function Works({ works }: WorksProps) {
     const options = [{ id: "all", name: "すべて" }];
 
     // 優先カテゴリー（すべての次に表示させたいカテゴリー）
-    const priorityCategories = ["inhouse", "external"];
+    const priorityCategories = ["inhouse", "external", "self"];
 
     // 優先カテゴリーを先に追加
     for (const priorityCatId of priorityCategories) {
@@ -141,22 +141,24 @@ export function Works({ works }: WorksProps) {
       // inhouse/externalの選択状態
       const hasSelectedInhouse = categoryIds.includes("inhouse");
       const hasSelectedExternal = categoryIds.includes("external");
+      const hasSelectedSelf = categoryIds.includes("self");
 
       // 作品のメインカテゴリ状態
       const workHasInhouse = workCategories.includes("inhouse");
       const workHasExternal = workCategories.includes("external");
-
+      const workHasSelf = workCategories.includes("self");
       // メインカテゴリの条件をチェック - 少なくとも一つが一致する必要がある
       const matchesMainCategory =
-        (!hasSelectedInhouse && !hasSelectedExternal) || // メイン未選択時は次の条件へ
+        (!hasSelectedInhouse && !hasSelectedExternal && !hasSelectedSelf) || // メイン未選択時は次の条件へ
         (hasSelectedInhouse && workHasInhouse) || // inhouseが選択され、作品もinhouse
-        (hasSelectedExternal && workHasExternal); // externalが選択され、作品もexternal
+        (hasSelectedExternal && workHasExternal) || // externalが選択され、作品もexternal
+        (hasSelectedSelf && workHasSelf); // selfが選択され、作品もself
 
       if (!matchesMainCategory) return false;
 
       // サブカテゴリの選択状態
       const selectedSubCategories = categoryIds.filter(
-        (id) => id !== "inhouse" && id !== "external" && id !== "all",
+        (id) => id !== "inhouse" && id !== "external" && id !== "self" && id !== "all",
       );
 
       // サブカテゴリが選択されていない場合、メインカテゴリのみで判定
@@ -193,6 +195,7 @@ export function Works({ works }: WorksProps) {
     const mapping = {
       inhouse: new Set<string>(),
       external: new Set<string>(),
+      self: new Set<string>(),
     };
 
     worksArray.forEach((work) => {
@@ -203,12 +206,13 @@ export function Works({ works }: WorksProps) {
       // inhouseまたはexternalカテゴリーを持つか確認
       const hasInhouse = categories.includes("inhouse");
       const hasExternal = categories.includes("external");
-
+      const hasSelf = categories.includes("self");
       // サブカテゴリーを適切なメインカテゴリーにマッピング
       categories.forEach((cat) => {
         if (cat !== "inhouse" && cat !== "external") {
           if (hasInhouse) mapping.inhouse.add(cat);
           if (hasExternal) mapping.external.add(cat);
+          if (hasSelf) mapping.self.add(cat);
         }
       });
     });
@@ -221,7 +225,9 @@ export function Works({ works }: WorksProps) {
 
   // 表示すべきサブカテゴリーを計算
   const visibleSubCategories = useMemo(() => {
-    return categoryOptions.filter((cat) => !["all", "inhouse", "external"].includes(cat.id));
+    return categoryOptions.filter(
+      (cat) => !["all", "inhouse", "external", "self"].includes(cat.id),
+    );
   }, [categoryOptions]);
   // カテゴリーでフィルタリングされた実績
   const filteredWorks = useMemo(() => {
@@ -468,64 +474,90 @@ export function Works({ works }: WorksProps) {
             <Heading subTitle="Works">実績一覧</Heading>
           </div>
 
-          <div className="my-8 flex flex-col space-y-2 md:space-y-4 flex-grow">
+          <div className="my-8 flex flex-col flex-grow">
             {/* inhouse, external カテゴリー */}
-            <div className="flex flex-wrap md:gap-2">
-              {categoryOptions
-                .filter((cat) => ["inhouse", "external"].includes(cat.id))
-                .map((category) => (
-                  <Button
-                    key={category.id}
-                    variant={selectedCategories.includes(category.id) ? "default" : "outline"}
-                    onClick={() => handleCategoryChange(category.id)}
-                    className="m-1"
-                    size="sm"
-                  >
-                    {category.name}
-                  </Button>
-                ))}
+            <div className="relative border-t border-border py-5">
+              <h3 className="absolute px-2 py-2 z-10 top-0 left-0 md:left-2 mb-4 flex items-center gap-4 -translate-y-1/2 bg-background">
+                <span
+                  className="text-xs font-semibold"
+                  style={{ fontFamily: "var(--font-montserrat)" }}
+                  aria-hidden="true"
+                >
+                  案件タイプ
+                </span>
+              </h3>
+              <div className="flex flex-wrap md:gap-2">
+                {categoryOptions
+                  .filter((cat) => ["inhouse", "external", "self"].includes(cat.id))
+                  .map((category) => (
+                    <Button
+                      key={category.id}
+                      variant={selectedCategories.includes(category.id) ? "default" : "outline"}
+                      onClick={() => handleCategoryChange(category.id)}
+                      className="m-1"
+                      size="sm"
+                    >
+                      {category.name}
+                    </Button>
+                  ))}
+              </div>
             </div>
-
             {/* その他のカテゴリー - 選択されたメインカテゴリーに応じて動的に表示 */}
-            <div className="flex flex-wrap md:gap-2">
-              {visibleSubCategories.map((category) => {
-                // 現在選択されているメインカテゴリーを確認
-                const hasInhouse = selectedCategories.includes("inhouse");
-                const hasExternal = selectedCategories.includes("external");
-                const isAllSelected = selectedCategories.includes("all");
-                const isSelected = selectedCategories.includes(category.id);
+            <div className="relative border-t border-border py-5 mt-4">
+              <h3 className="absolute px-2 py-2 z-10 top-0 left-0 md:left-2 mb-4 flex items-center gap-4 -translate-y-1/2 bg-background">
+                <span
+                  className="text-xs font-semibold"
+                  style={{ fontFamily: "var(--font-montserrat)" }}
+                  aria-hidden="true"
+                >
+                  カテゴリー
+                </span>
+              </h3>
+              <div className="flex flex-wrap md:gap-2">
+                {visibleSubCategories.map((category) => {
+                  // 現在選択されているメインカテゴリーを確認
+                  const hasInhouse = selectedCategories.includes("inhouse");
+                  const hasExternal = selectedCategories.includes("external");
+                  const hasSelf = selectedCategories.includes("self");
+                  const isAllSelected = selectedCategories.includes("all");
+                  const isSelected = selectedCategories.includes(category.id);
 
-                // サブカテゴリーが現在選択されているメインカテゴリーに関連付けられているか確認
-                const isLinkedToInhouse = categoryMapping.inhouse.has(category.id);
-                const isLinkedToExternal = categoryMapping.external.has(category.id);
+                  // サブカテゴリーが現在選択されているメインカテゴリーに関連付けられているか確認
+                  const isLinkedToInhouse = categoryMapping.inhouse.has(category.id);
+                  const isLinkedToExternal = categoryMapping.external.has(category.id);
+                  const isLinkedToSelf = categoryMapping.self.has(category.id);
+                  // 視覚的に無効化する条件（選択中の場合は除く）：
+                  // - 「すべて」が選択されていない状態で
+                  // - 選択されているメインカテゴリー(inhouse/external)に関連付けられていない
+                  const visuallyDisabled =
+                    !isSelected &&
+                    !isAllSelected &&
+                    ((hasInhouse && !isLinkedToInhouse && !hasExternal && !hasSelf) ||
+                      (hasExternal && !isLinkedToExternal && !hasInhouse && !hasSelf) ||
+                      (hasInhouse &&
+                        hasExternal &&
+                        !isLinkedToInhouse &&
+                        !isLinkedToExternal &&
+                        !hasSelf) ||
+                      (hasSelf && !isLinkedToSelf && !hasInhouse && !hasExternal));
 
-                // 視覚的に無効化する条件（選択中の場合は除く）：
-                // - 「すべて」が選択されていない状態で
-                // - 選択されているメインカテゴリー(inhouse/external)に関連付けられていない
-                const visuallyDisabled =
-                  !isSelected &&
-                  !isAllSelected &&
-                  ((hasInhouse && !isLinkedToInhouse && !hasExternal) ||
-                    (hasExternal && !isLinkedToExternal && !hasInhouse) ||
-                    (hasInhouse && hasExternal && !isLinkedToInhouse && !isLinkedToExternal));
-
-                return (
-                  <Button
-                    key={category.id}
-                    variant={isSelected ? "default" : "outline"}
-                    onClick={() => handleCategoryChange(category.id)}
-                    className={`m-1 ${visuallyDisabled ? "cursor-not-allowed hover:no-underline bg-border text-muted-foreground" : ""}`}
-                    disabled={visuallyDisabled}
-                    size="sm"
-                  >
-                    {category.name}
-                  </Button>
-                );
-              })}
+                  return (
+                    <Button
+                      key={category.id}
+                      variant={isSelected ? "default" : "outline"}
+                      onClick={() => handleCategoryChange(category.id)}
+                      className={`m-1 ${visuallyDisabled ? "cursor-not-allowed hover:no-underline bg-border text-muted-foreground" : ""}`}
+                      disabled={visuallyDisabled}
+                      size="sm"
+                    >
+                      {category.name}
+                    </Button>
+                  );
+                })}
+              </div>
             </div>
-
             {/* 「すべて」カテゴリー */}
-            <div className="flex">
+            <div className="flex py-2">
               <Button
                 key="all"
                 variant={selectedCategories.includes("all") ? "default" : "outline"}
@@ -575,19 +607,41 @@ export function Works({ works }: WorksProps) {
                   </CardHeader>
                   <CardContent className="flex-grow">
                     <div className="mb-4 flex flex-wrap gap-y-2 gap-x-1">
-                      {work.category?.map((categoryRelation, idx) => {
-                        const relation = categoryRelation as CategoryRelation;
-                        if (!relation || typeof relation !== "object" || !relation.key) return null;
+                      {work.category
+                        ?.slice()
+                        .sort((a, b) => {
+                          const aRelation = a as CategoryRelation;
+                          const bRelation = b as CategoryRelation;
 
-                        return (
-                          <Badge key={idx} variant="outline">
-                            {relation.value || relation.key}
-                          </Badge>
-                        );
-                      })}
+                          const priorityOrder = ["inhouse", "external", "self"];
+
+                          const aIndex = priorityOrder.indexOf(aRelation.key);
+                          const bIndex = priorityOrder.indexOf(bRelation.key);
+
+                          if (aIndex >= 0 && bIndex >= 0) {
+                            return aIndex - bIndex;
+                          }
+
+                          if (aIndex >= 0) return -1;
+
+                          if (bIndex >= 0) return 1;
+
+                          return 0;
+                        })
+                        .map((categoryRelation, idx) => {
+                          const relation = categoryRelation as CategoryRelation;
+                          if (!relation || typeof relation !== "object" || !relation.key)
+                            return null;
+
+                          return (
+                            <Badge key={idx} variant="outline">
+                              {relation.value || relation.key}
+                            </Badge>
+                          );
+                        })}
                     </div>
                     <CardTitle className="mb-2 text-lg">{work.title}</CardTitle>
-                    <CardDescription className="text-sm line-clamp-3">
+                    <CardDescription className="text-sm line-clamp-3 leading-relaxed">
                       {work.description}
                     </CardDescription>
                     <div className="mt-4 flex flex-wrap gap-y-2 gap-x-1">

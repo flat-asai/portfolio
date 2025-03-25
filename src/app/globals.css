@@ -179,9 +179,9 @@
 }
 
 .rich-text-content figure {
-  @apply my-4;
+  @apply my-4 rounded-md overflow-hidden;
 }
 
 .rich-text-content figure img {
-  @apply w-full;
+  @apply w-full h-auto object-cover;
 }
