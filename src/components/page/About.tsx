@@ -14,11 +14,6 @@ export function About() {
       items: [
         { name: "名前", value: "浅井 泰名" },
         { name: "出身地", value: "愛知県" },
-        {
-          name: "経歴",
-          value:
-            "<dl class='flex max-md:flex-col md:gap-2'><dt class='flex-srink-0 min-w-[8em]'>2015年〜2020年</dt> <dd>小出剛司法律事務所（弁護士補佐）</dd></dl ><dl class='flex max-md:flex-col md:gap-2'><dt class='flex-srink-0 min-w-[8em]'> 2020年〜2021年</dt> <dd>弁護士法人プロテクトスタンス（Webデザイナー）</dd></dl><dl class='flex max-md:flex-col md:gap-2'> <dt class='flex-srink-0 min-w-[8em]'> 2021年〜現在</dt> <dd>株式会社FLAT（フロントエンドエンジニア）</dd></dl>",
-        },
       ],
     },
     {
@@ -215,10 +210,7 @@ export function About() {
                   {item.items.map((item, index) => (
                     <div className="md:flex gap-2" key={index}>
                       <dt className="min-w-[12em] max-md:font-bold">{item.name}</dt>
-                      <dd
-                        className="break-words"
-                        dangerouslySetInnerHTML={{ __html: item.value }}
-                      />
+                      <dd className="break-words">{item.value}</dd>
                     </div>
                   ))}
                 </dl>
