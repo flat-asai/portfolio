@@ -14,6 +14,7 @@ export function About() {
       items: [
         { name: "名前", value: "浅井 泰名" },
         { name: "出身地", value: "愛知県" },
+        { name: "職業", value: "フロントエンドエンジニア" },
       ],
     },
     {
