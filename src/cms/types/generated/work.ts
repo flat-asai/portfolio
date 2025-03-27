@@ -72,6 +72,8 @@ export type Work = {
     | "Google Maps JavaScript API"
     | "Vercel"
     | "Shopify"
+    | "Notion API"
+    | "OpenAI API "
   )[];
   /**
    * 制作期間

@@ -66,7 +66,9 @@
         { "id": "vIs5_jkYeb", "value": "Storybook" },
         { "id": "eCBThjhfRM", "value": "Google Maps JavaScript API" },
         { "id": "e7xB3BTMVS", "value": "Vercel" },
-        { "id": "34IVg1m9yy", "value": "Shopify" }
+        { "id": "34IVg1m9yy", "value": "Shopify" },
+        { "id": "v6TW4vTmfG", "value": "Notion API" },
+        { "id": "2XR-hdvq8u", "value": "OpenAI API " }
       ],
       "selectInitialValue": [],
       "multipleSelect": true
