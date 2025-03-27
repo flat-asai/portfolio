@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/react";
 import { notoSansJP, montserrat } from "./fonts";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
@@ -28,6 +29,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AccessibilityProvider>{children}</AccessibilityProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
