@@ -51,20 +51,15 @@ export function ProjectModal({
     }
   }, []);
 
-  // AnimatePresenceのモードをwaitからsyncに変更
-  // これにより、退場アニメーションが完了する前に次のコンテンツが入場できるようになる
-  const animatePresenceMode = "sync";
-
   // ナビゲーション時のハンドラー
   const handleNavigate = useCallback(
     (newIndex: number) => {
       // 即座にコンテンツを変更し、AnimatePresenceにトランジションを任せる
       onNavigate(newIndex);
 
-      // 次のフレームでスクロールをリセット（見えないタイミングでリセット）
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         resetScroll();
-      });
+      }, 200); // アニメーションと合わせ、0.2sの遅延を追加
     },
     [onNavigate, resetScroll],
   );
@@ -164,7 +159,7 @@ export function ProjectModal({
           transition={{ duration: 0.2 }}
           onClick={(e) => e.stopPropagation()}
         >
-          <AnimatePresence mode={animatePresenceMode}>
+          <AnimatePresence>
             <motion.div
               key={currentWork.slug}
               initial={animationsEnabled ? { opacity: 0 } : {}}
